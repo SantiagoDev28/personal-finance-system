@@ -1,0 +1,54 @@
+
+name: Branch Flow Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  validate-branch-flow:
+    name: validate-branch-flow
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate source and target branches
+        env:
+          BASE: ${{ github.event.pull_request.base.ref }}
+          HEAD: ${{ github.event.pull_request.head.ref }}
+        run: |
+          echo "Source: $HEAD"
+          echo "Target: $BASE"
+
+          case "$BASE" in
+            laboratory)
+              case "$HEAD" in
+                feature/*|fix/*|chore/*|refactor/*)
+                  echo "Valid: short-lived branch -> laboratory"
+                  ;;
+                *)
+                  echo "Invalid source branch for laboratory"
+                  exit 1
+                  ;;
+              esac
+              ;;
+            integration)
+              if [ "$HEAD" != "laboratory" ]; then
+                echo "Only laboratory can merge into integration"
+                exit 1
+              fi
+              ;;
+            main)
+              if [ "$HEAD" != "integration" ]; then
+                echo "Only integration can merge into main"
+                exit 1
+              fi
+              ;;
+            *)
+              echo "Invalid target branch: $BASE"
+              exit 1
+              ;;
+          esac
