@@ -80,3 +80,4 @@ Notion sigue teniendo estos límites. La base permanente existe, entre otras raz
 | [domain/data-model.md](domain/data-model.md) | Forma de las cuatro bases |
 | [domain/notion-ids.md](domain/notion-ids.md) | Ids para leer Notion |
 | [capture-iphone/](capture-iphone/shortcuts.md) | Cómo capturan hoy los atajos |
+| [development/workflow.md](development/workflow.md) | Ramas, commits y la clave PER |
