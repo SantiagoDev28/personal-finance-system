@@ -1,5 +1,7 @@
 # Flujo de captura
 
+Cómo se registra un movimiento hoy, antes de la aplicación web. El canal del iPhone está en [shortcuts.md](shortcuts.md) y [iphone-widgets.md](iphone-widgets.md). La aplicación que se va a construir consume el resultado ya escrito en Notion: [../context.md](../context.md).
+
 El hábito muere si el flujo es: abrir Notion → buscar página → abrir database → nueva fila → 7 campos.
 
 El flujo correcto:

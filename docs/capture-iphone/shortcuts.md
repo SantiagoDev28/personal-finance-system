@@ -1,5 +1,7 @@
 # Guía: crear los atajos en el iPhone
 
+Referencia de cómo los atajos escriben hoy en Notion. Los ids canónicos, si esta guía y Notion discrepan, están en [../domain/notion-ids.md](../domain/notion-ids.md). La aplicación web consumirá esas filas y las guardará en su propia base: [../context.md](../context.md).
+
 Haz esto **en el iPhone**, app **Atajos**. No uses el formulario de Notion.
 
 Vas a crear tres atajos:
@@ -431,4 +433,4 @@ Resumen:
 | El gasto sale pero sin categoría | El `CategoriaID` de esa opción del menú está vacío o con un espacio. |
 | No aparece en el mes | Revisa que `FechaHoy` sea `yyyy-MM-dd` (año con 4 cifras). |
 
-Más IDs (si creas una cuenta nueva): [notion-ids.md](notion-ids.md).
+Más IDs (si creas una cuenta nueva): [../domain/notion-ids.md](../domain/notion-ids.md).

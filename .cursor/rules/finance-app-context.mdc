@@ -1,0 +1,16 @@
+---
+description: Dirección del sistema de finanzas. La web NestJS consume Notion y persiste ingresos y gastos con trazabilidad.
+alwaysApply: true
+---
+
+# Finanzas personales
+
+La decisión vive en `docs/context.md`. Este repositorio todavía no tiene aplicación.
+
+- El producto a construir es una web hecha a mano. El servidor es NestJS, creado desde cero en este repo cuando se pida.
+- Notion (hub Finanzas) es la fuente. La app lee movimientos, cuentas, categorías y presupuestos, los reescribe en su propia base y los guarda de forma permanente.
+- Cada ingreso y cada gasto queda trazable: id propio, `page_id` de Notion, tipo, valor positivo, fecha, categoría, cuenta y constancia si el origen cambia.
+- Moneda COP. Plan Financiero queda fuera de este registro.
+- Los ids canónicos están en `docs/domain/notion-ids.md`. El modelo está en `docs/domain/data-model.md`.
+- `docs/capture-iphone/` describe los atajos que escriben en Notion hoy. Esa carpeta no es el plan de implementación.
+- Hasta que se pida el proyecto, no generes NestJS ni escribas código de aplicación.

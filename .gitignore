@@ -4,3 +4,9 @@
 *.secret
 .DS_Store
 Thumbs.db
+
+# NestJS, cuando el proyecto exista
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
