@@ -532,6 +532,8 @@ No incluir datos reales ni secretos. Indicar cómo reportar vulnerabilidades si 
 
 ## 5. Git: ramas, commits y pull requests
 
+El flujo que se usa está en [development/workflow.md](development/workflow.md): `laboratory`, `integration`, `main` y la clave `PER`.
+
 El objetivo no es simular un equipo grande cuando trabajas en solitario.
 Es practicar un flujo que tenga sentido profesional sin añadir
 burocracia.
