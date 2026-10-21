@@ -1,5 +1,7 @@
 # Widgets de iPhone (sin formulario Notion)
 
+Referencia de la captura actual en el teléfono. La aplicación web no se construye como widget: consume lo que estos atajos dejan en Notion. Contexto: [../context.md](../context.md).
+
 El widget nativo de Notion **solo abre una página**. No pregunta el monto ni crea un movimiento.
 
 La captura vive en un **widget de Atajos**. Notion ni se abre.
@@ -43,7 +45,7 @@ No uses Share form ni la página «Probar atajo iPhone» para el hábito diario.
 
 En la app **Atajos**, crea:
 
-Guía toque a toque (qué buscar en Atajos, qué pegar, cómo armar el widget): [shortcuts.md](shortcuts.md).
+Guía toque a toque (qué buscar en Atajos, qué pegar, cómo armar el widget): [shortcuts.md](shortcuts.md). Ids canónicos: [../domain/notion-ids.md](../domain/notion-ids.md).
 
 1. `💸 Nuevo gasto` — pregunta valor, categoría, cuenta; `POST` a Notion.
 2. `💰 Nuevo ingreso` — duplicado del primero, `Tipo = Ingreso`.
@@ -86,7 +88,7 @@ Luego, en el hub Finanzas, el gasto ya está en Mayores gastos, el donut y el to
 - Integración interna conectada a esa base, a Categorías y a Cuentas.
 - Token del atajo (llavero del iPhone, no el repo).
 
-IDs y JSON del `POST`: [shortcuts.md](shortcuts.md) y [notion-ids.md](notion-ids.md).
+IDs y JSON del `POST`: [shortcuts.md](shortcuts.md) y [../domain/notion-ids.md](../domain/notion-ids.md).
 
 ## Lo que no hace el MCP
 

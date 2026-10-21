@@ -1,6 +1,6 @@
 # IDs de Notion
 
-Usa estos IDs en Atajos, en `POST /v1/pages` y al reconectar la integración. No incluyen el token.
+Lista canónica para leer y reescribir estas bases. No incluye el token. Si un atajo del iPhone muestra otra etiqueta de cuenta, manda el `page_id` de este archivo. Contexto: [../context.md](../context.md).
 
 Hub: [Finanzas](https://app.notion.com/p/3cff454b5630814690fec87bfbd8b82a) — `3cff454b-5630-8146-90fe-c87bfbd8b82a`
 
@@ -57,4 +57,4 @@ La API clásica usa `database_id` en `parent`. Las relaciones usan `page_id` de 
 | Roadmap | `3cff454b-5630-810e-bb0d-eb82723e8de2` |
 | IDs para API | `3cff454b-5630-817e-907c-c625ccff93ef` |
 
-Si recreas una fila (por ejemplo una cuenta nueva), actualiza este archivo y la página Notion homónima.
+Si recreas una fila (por ejemplo una cuenta nueva), actualiza este archivo y la página Notion homónima. La aplicación tiene que leer los ids de aquí.

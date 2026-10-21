@@ -1,79 +1,53 @@
-# Arquitectura
+# Arquitectura objetivo
 
-## Objetivo
-
-Reducir el registro de un movimiento a tres gestos en el iPhone. Notion guarda la verdad; el teléfono solo captura y muestra resumen.
-
-```text
-iPhone → Widget Atajos → 3 preguntas → API Notion → Dashboard
-```
-
-El formulario de Notion no entra en el flujo diario. El widget nativo de Notion solo sirve para **ver resumen**.
-
-## Capas
+La aplicación web es el sistema. Notion es la fuente que se consume. La base de la aplicación es el archivo permanente de ingresos y gastos.
 
 ```text
 ┌─────────────────────────────────────────┐
-│  Captura (iPhone)                       │
-│  Widget Atajos (captura) + API          │
-│  Widget Notion (solo ver resumen)       │
+│  Aplicación web (NestJS, hecha a mano)  │
+│  Lee Notion y muestra el registro       │
 └──────────────────┬──────────────────────┘
                    ▼
 ┌─────────────────────────────────────────┐
-│  Núcleo (Notion)                        │
-│  Cuentas ──► Movimientos ◄── Categorías │
-│                    │                    │
-│                    ▼                    │
-│              Presupuestos               │
+│  Ingesta                                │
+│  Movimientos, cuentas, categorías,      │
+│  presupuestos                           │
 └──────────────────┬──────────────────────┘
                    ▼
 ┌─────────────────────────────────────────┐
-│  Lectura                                │
-│  Hub Finanzas: 5 indicadores            │
-│  Plan Financiero: metas y reglas        │
+│  Base permanente                        │
+│  Cada movimiento reescrito, con origen  │
+│  y rastro si el dato cambia             │
 └─────────────────────────────────────────┘
+
+Fuente externa: hub Finanzas en Notion
+Brújula aparte: Plan Financiero
 ```
 
-| Capa | Responsabilidad | Qué no hace |
-| --- | --- | --- |
-| Captura | Preguntar lo mínimo y escribir un movimiento | Calcular presupuestos, clasificar con IA |
-| Núcleo | Ser la fuente de verdad | Sustituir el widget |
-| Lectura | Responder «¿cuánto y en qué?» | Servir de formulario |
+| Capa | Responsabilidad |
+| --- | --- |
+| Web | Servir el registro de ingresos y gastos. Se construye en NestJS, desde cero, en este repositorio. |
+| Ingesta | Leer las bases de Notion y reescribir cada movimiento en la base propia. |
+| Base permanente | Guardar el historial de forma durable y trazable. |
+| Notion | Seguir siendo el origen de los datos que la aplicación consume en este tramo. |
+| Plan Financiero | Metas y reglas. Permanece fuera de este registro. |
 
-**Plan Financiero** (página ya existente) es la brújula: metas, reglas, seguimiento anual. **Finanzas** es el sistema operativo: cada gasto e ingreso.
+El flujo de datos de este tramo va de Notion hacia la base de la aplicación. El contexto completo está en [context.md](context.md).
 
-## Acciones del iPhone
+## Reglas de dominio que la ingesta respeta
 
-| Acción | Destino | Latencia aceptable |
-| --- | --- | --- |
-| Registrar gasto | Widget Atajos → `POST /v1/pages` | < 15 s |
-| Registrar ingreso | Igual, `Tipo = Ingreso` | < 20 s |
-| Ver resumen | Abrir hub Finanzas | 1 tap |
+- Valor positivo. El tipo (`Gasto` o `Ingreso`) distingue el movimiento.
+- Categoría y cuenta llegan como relaciones de Notion. Se guardan el id de origen y el nombre.
+- Moneda COP.
+- Un movimiento de Notion (`page_id`) corresponde a un registro permanente identificable. Si Notion cambia, queda constancia; el historial no se sustituye en silencio.
+- Los ids canónicos están en [domain/notion-ids.md](domain/notion-ids.md). El modelo de las bases está en [domain/data-model.md](domain/data-model.md).
 
-## Dos caminos de captura
+## Captura actual
 
-1. **Formulario Notion** — cero código, un tap abre el form. Suficiente para demostrar el hábito.
-2. **Atajo + API** — pregunta valor, categoría y cuenta; no muestra la UI de Notion. Usar cuando el formulario ya se sienta lento.
-
-Detalle: [capture-flow.md](capture-flow.md), [iphone-widgets.md](iphone-widgets.md), [shortcuts.md](shortcuts.md).
-
-## Decisiones de diseño
-
-- **Valor siempre positivo.** El signo lo calcula la fórmula `Impacto` según `Tipo`. Así el atajo nunca envía negativos por error.
-- **Cuenta es relación, no select duplicado.** «Método» (Nequi, efectivo…) es la cuenta. Un solo campo.
-- **Categorías cortas.** Diez de gasto, tres de ingreso. Subcategoría queda fuera del v1.
-- **Presupuesto.Gastado es número, no rollup mensual.** Un rollup de Notion no puede filtrar «este mes». Se actualiza en la revisión semanal (o con automatización después).
-- **Filtros de dashboard en septiembre 2026.** En la UI de Notion, cámbialos a *Este mes* para que rueden solos.
-
-## Límites de Notion (no pelear contra ellos)
-
-- Los rollups no filtran por mes.
-- Los widgets nativos de Notion abren páginas; no ejecutan atajos.
-- Una integración interna solo ve páginas con las que está conectada.
-- Las fórmulas del dashboard (disponible, tasa de ahorro) no viven en una sola celda: se leen de las vistas filtradas Ingresos y Gastos.
+Los atajos del iPhone escriben en la base Movimientos con `POST /v1/pages`. Ese canal explica cómo nacen muchas filas. La descripción está en [capture-iphone/shortcuts.md](capture-iphone/shortcuts.md) y [capture-iphone/capture-flow.md](capture-iphone/capture-flow.md). La aplicación lee el resultado ya guardado en Notion.
 
 ## Seguridad
 
-- El token de la integración no entra al repo (`.env` está en `.gitignore`).
-- El hub se creó como borrador privado.
-- No hace falta compartir las bases en público: el formulario se puede compartir solo contigo; la API usa el token en el atajo (en el llavero del iPhone).
+- El token de la integración vive fuera del repositorio (`.env` está en `.gitignore`).
+- El hub Finanzas es un borrador privado.
+- La aplicación, cuando exista, usa el token en el servidor. El token no viaja al navegador ni se documenta en los atajos como lugar definitivo.

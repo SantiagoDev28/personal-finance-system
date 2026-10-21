@@ -1,52 +1,45 @@
 # Roadmap
 
-El hábito de captura vale más que el dashboard. No saltar fases.
+El repositorio guarda el contexto. La aplicación todavía no existe. Se construye a mano, con NestJS, desde cero.
 
 ```text
-Modelo → Movimientos → Cuentas → Categorías
-    → Registro manual / Form
-    → API → Atajo → Widget
-    → Dashboard → Presupuestos
-    → Recordatorios → Automatizaciones → IA
+Contexto y fuente Notion
+    → proyecto NestJS vacío, en este repo
+    → leer Notion
+    → reescribir movimientos en la base permanente
+    → trazabilidad de ingresos y gastos
+    → la web como lugar donde se consulta el registro
 ```
 
-## Hecho (esta sesión, vía Notion MCP)
+## Hecho
 
-| Fase | Qué |
+| Qué | Dónde |
 | --- | --- |
-| 1 | Modelo de datos documentado (repo + página Notion) |
-| 2 | Base **Movimientos** con Impacto, Mes, relaciones |
-| 3 | Base **Cuentas** + 5 cuentas |
-| 4 | Base **Categorías** + catálogo corto |
-| 5 | Formularios **Registrar gasto / ingreso** y un movimiento de ejemplo |
-| 9 | Hub Finanzas: totales, donut, mayores gastos |
-| 10 | **Presupuestos** septiembre 2026 |
+| Modelo de cuatro bases y catálogo en Notion | [domain/data-model.md](domain/data-model.md) |
+| Ids de bases, cuentas y categorías | [domain/notion-ids.md](domain/notion-ids.md) |
+| Hub Finanzas con indicadores y presupuestos de septiembre 2026 | Notion |
+| Descripción de la captura por atajos de iPhone | [capture-iphone/](capture-iphone/shortcuts.md) |
+| Decisión de la aplicación web y de la base permanente | [context.md](context.md) |
 
-## Siguiente (en el iPhone)
+## Siguiente, cuando se pida
 
-| Fase | Qué | Doc |
-| --- | --- | --- |
-| 6 | Integración Notion API (cuando el form se quede corto) | [shortcuts.md](shortcuts.md) |
-| 7 | Atajo `💸 Nuevo gasto` | [shortcuts.md](shortcuts.md) |
-| 8 | Widget de pantalla de inicio | [iphone-widgets.md](iphone-widgets.md) |
+1. Crear el proyecto NestJS desde cero en este repositorio, sin generarlo de antemano en este paso.
+2. Conectar la lectura a las bases de Notion ya documentadas.
+3. Reescribir cada movimiento en la base propia y guardarlo de forma permanente.
+4. Dejar trazable cada ingreso y cada gasto: origen en Notion, tipo, valor, fecha, categoría, cuenta y constancia si el origen cambia.
 
-## Después del hábito
+## Después de que el registro permanente exista
 
-| Fase | Qué | Criterio para empezar |
-| --- | --- | --- |
-| 11 | Recordatorio diario 21:00 | Al menos 7 días con registros reales |
-| 12 | Resumen semanal del domingo | Poder decir la categoría #1 del mes |
-| 13 | IA: texto libre → categoría + necesidad | El atajo B ya es aburrido de tan fácil |
+La web pasa a ser el lugar donde se consulta en qué se está yendo el dinero. Los presupuestos se calculan desde los movimientos guardados. Recién entonces tiene sentido hablar de recordatorios o de clasificación asistida.
 
-## Criterio de avance
+## Criterio
 
-No pasar de captura a automatización hasta responder con datos reales:
+Un ingreso o un gasto guardado por la aplicación se puede seguir hasta la fila de Notion de la que salió, y sigue en la base propia aunque el dashboard de Notion cambie de mes.
 
-**¿En qué se me está yendo el dinero este mes?**
+## Fuera de alcance de este tramo
 
-## Fuera de alcance v1
-
-- Subcategorías
-- Clasificación automática de «Almuerzo McDonald's 18500»
-- Ledger de saldos por cuenta en tiempo real
-- Más de ~10 categorías de gasto
+- Subcategorías.
+- Transferencias como tipo propio.
+- Saldo de cuenta en tiempo real.
+- Texto libre clasificado solo.
+- Más de unas diez categorías de gasto.
