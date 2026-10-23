@@ -29,6 +29,7 @@ La página [Plan Financiero](https://app.notion.com/p/305f454b5630808bb33ddd0fbf
 | [docs/domain/notion-ids.md](docs/domain/notion-ids.md) | IDs que la aplicación tiene que leer |
 | [docs/capture-iphone/shortcuts.md](docs/capture-iphone/shortcuts.md) | Cómo capturan hoy los atajos. Es referencia, no el plan de programación |
 | [docs/development/workflow.md](development/workflow.md) | Ramas, Conventional Commits y smart commits con PER |
+| [docs/decisions/ADR-0001-dinero-moneda-y-fecha.md](decisions/ADR-0001-dinero-moneda-y-fecha.md) | Moneda COP, peso entero y fecha del movimiento |
 
 ## Principios
 
