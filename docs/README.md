@@ -1,6 +1,6 @@
 # Sistema de finanzas personales
 
-Repositorio listo para una aplicación web. Todavía no hay código.
+El servidor NestJS ya registra movimientos en memoria, los lista y calcula el saldo. Notion sigue siendo la fuente que la aplicación va a leer.
 
 Hoy los ingresos y los gastos viven en Notion. En el iPhone, unos atajos los capturan. La aplicación que sigue va a consumir esos datos, reescribirlos en su propia base y guardarlos de forma permanente, con trazabilidad de cada movimiento.
 
