@@ -26,7 +26,7 @@ jobs:
           case "$BASE" in
             laboratory)
               case "$HEAD" in
-                feature/*|fix/*|chore/*|refactor/*)
+                feat/*|fix/*|chore/*|refactor/*)
                   echo "Valid: short-lived branch -> laboratory"
                   ;;
                 *)
