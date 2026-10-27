@@ -18,6 +18,15 @@ pnpm test
 
 Jest corre las pruebas del dominio y del servicio en memoria. No hace falta levantar el servidor ni una base de datos.
 
+## Lint y formato
+
+```bash
+pnpm run format
+pnpm run lint
+```
+
+`pnpm run format` reescribe `src/**/*.ts` y `test/**/*.ts` con Prettier. `pnpm run lint` ejecuta ESLint sobre el proyecto y corrige lo que la configuración permite. Los dos comandos tienen que terminar sin error.
+
 ## Arranque
 
 ```bash
