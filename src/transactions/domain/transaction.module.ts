@@ -4,8 +4,8 @@ import { TransactionController } from './transaction.controller';
 import { TransactionMemory } from './transaction.memory';
 
 @Module({
-    imports: [],
-    controllers: [ TransactionController ],
-    providers: [ TransactionService, TransactionMemory ],
+  imports: [],
+  controllers: [TransactionController],
+  providers: [TransactionService, TransactionMemory],
 })
 export class TransactionModule {}

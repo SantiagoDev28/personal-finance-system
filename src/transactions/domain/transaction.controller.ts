@@ -9,8 +9,8 @@ export class TransactionController {
   @Post()
   create(@Body() transaction: Transaction): Transaction {
     const transactionData = {
-        ...transaction,
-        date: new Date(transaction.date),
+      ...transaction,
+      date: new Date(transaction.date),
     };
     return this.transactionService.create(transactionData);
   }
@@ -21,7 +21,7 @@ export class TransactionController {
   }
 
   @Get('resume')
-  resume(): { income: number, expense: number, balance: number } {
+  resume(): { income: number; expense: number; balance: number } {
     return this.transactionService.resume();
   }
 

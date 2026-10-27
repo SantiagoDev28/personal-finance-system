@@ -79,7 +79,9 @@ describe('TransactionsService', () => {
   });
 
   it('should throw when the transaction does not exist', () => {
-    expect(() => service.findById('99')).toThrow('Transaction with id 99 not found');
+    expect(() => service.findById('99')).toThrow(
+      'Transaction with id 99 not found',
+    );
   });
 
   it('should report zero income, expense and balance when the list is empty', () => {
