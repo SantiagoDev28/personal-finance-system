@@ -24,7 +24,7 @@ La página [Plan Financiero](https://app.notion.com/p/305f454b5630808bb33ddd0fbf
 | --- | --- |
 | [docs/context.md](docs/context.md) | Qué será la aplicación y qué se conserva |
 | [docs/architecture.md](docs/architecture.md) | Web, ingesta desde Notion y base permanente |
-| [docs/roadmap.md](docs/roadmap.md) | Orden para crear NestJS desde cero |
+| [docs/roadmap.md](docs/roadmap.md) | Qué ya está hecho y qué sigue hacia Notion |
 | [docs/domain/data-model.md](docs/domain/data-model.md) | Esquema de las cuatro bases |
 | [docs/domain/notion-ids.md](docs/domain/notion-ids.md) | IDs que la aplicación tiene que leer |
 | [docs/capture-iphone/shortcuts.md](docs/capture-iphone/shortcuts.md) | Cómo capturan hoy los atajos. Es referencia, no el plan de programación |
