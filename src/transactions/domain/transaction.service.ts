@@ -13,12 +13,20 @@ export class TransactionService {
     return newTransaction;
   }
 
+  update(transaction: Transaction): Transaction {
+    const updatedTransaction = Transaction.update(transaction);
+    this.transactionMemory.update(updatedTransaction);
+    return updatedTransaction;
+  }
+
   findAll(): Transaction[] {
     return this.transactionMemory.findAll();
   }
+
   findById(id: string): Transaction {
     return this.transactionMemory.findById(id);
   }
+  
   resume() {
     const summary = this.transactionMemory.findAll().reduce(
       (acc, transaction) => {

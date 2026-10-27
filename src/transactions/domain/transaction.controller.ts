@@ -1,19 +1,34 @@
-import { Controller, Body, Post, Get, Param } from '@nestjs/common';
+import { Controller, Body, Post, Get, Param, Patch } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { Transaction } from './transaction.entity';
+import { updateTransactionDto } from './dto/update-transaction.dto';
+import { createTransactionDto } from './dto/create-transaction.dto';
 
 @Controller('transactions')
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
   @Post()
-  create(@Body() transaction: Transaction): Transaction {
+  create(@Body() transaction: createTransactionDto): Transaction {
     const transactionData = {
       ...transaction,
       date: new Date(transaction.date),
     };
     return this.transactionService.create(transactionData);
   }
+
+  @Patch(':id')
+    update(
+      @Param('id') id: string,
+      @Body() transaction: updateTransactionDto,
+    ): Transaction {
+      const transactionData = {
+        ...transaction,
+        id,
+        date: new Date(transaction.date),
+      };
+      return this.transactionService.update(transactionData);
+    }
 
   @Get()
   findAll(): Transaction[] {
