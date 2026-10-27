@@ -56,4 +56,23 @@ export class Transaction {
       data.date,
     );
   }
+  public static update(data: {
+    id: string;
+    amount: number;
+    description: string;
+    category: string;
+    method: TransactionMethod;
+    type: TransactionType;
+    date: Date;
+  }): Transaction {
+    return Transaction.create({
+      id: data.id,
+      amount: data.amount,
+      description: data.description,
+      category: data.category,
+      method: data.method,
+      type: data.type,
+      date: data.date,
+    });
+  }
 }
