@@ -1,10 +1,10 @@
 # Roadmap
 
-El repositorio guarda el contexto. La aplicación todavía no existe. Se construye a mano, con NestJS, desde cero.
+El repositorio guarda el contexto. El servidor NestJS ya está en este repo: registra movimientos en memoria, los lista y calcula el saldo. Todavía no hay base de datos. En este roadmap, lo siguiente es leer Notion.
 
 ```text
 Contexto y fuente Notion
-    → proyecto NestJS vacío, en este repo
+    → proyecto NestJS con el núcleo en memoria
     → leer Notion
     → reescribir movimientos en la base permanente
     → trazabilidad de ingresos y gastos
@@ -20,13 +20,14 @@ Contexto y fuente Notion
 | Hub Finanzas con indicadores y presupuestos de septiembre 2026 | Notion |
 | Descripción de la captura por atajos de iPhone | [capture-iphone/](capture-iphone/shortcuts.md) |
 | Decisión de la aplicación web y de la base permanente | [context.md](context.md) |
+| Proyecto NestJS en este repositorio | [README](../README.md) |
+| Registro en memoria: alta, lista, consulta y saldo | `src/transactions/` |
 
 ## Siguiente, cuando se pida
 
-1. Crear el proyecto NestJS desde cero en este repositorio, sin generarlo de antemano en este paso.
-2. Conectar la lectura a las bases de Notion ya documentadas.
-3. Reescribir cada movimiento en la base propia y guardarlo de forma permanente.
-4. Dejar trazable cada ingreso y cada gasto: origen en Notion, tipo, valor, fecha, categoría, cuenta y constancia si el origen cambia.
+1. Conectar la lectura a las bases de Notion ya documentadas.
+2. Reescribir cada movimiento en la base propia y guardarlo de forma permanente.
+3. Dejar trazable cada ingreso y cada gasto: origen en Notion, tipo, valor, fecha, categoría, cuenta y constancia si el origen cambia.
 
 ## Después de que el registro permanente exista
 
