@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { Transaction } from './transaction.entity';
 import { updateTransactionDto } from './dto/update-transaction.dto';
 import { TransactionType } from './transaction.enum';
@@ -28,6 +28,13 @@ export class TransactionService {
     });
     return this.transactionMemory.update(updatedTransaction);
     
+  }
+
+  delete(id: string): { message: string; } {
+    this.transactionMemory.delete(id);
+    return {
+      message: `Transaction with id ${id} deleted successfully`,
+    }
   }
 
   findAll(): Transaction[] {

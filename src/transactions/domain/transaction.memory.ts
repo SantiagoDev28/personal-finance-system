@@ -38,4 +38,15 @@ export class TransactionMemory {
     }
     return transaction;
   }
+
+  delete(id: string): string {
+    const index = this.transactions.findIndex(
+      (transaction) => transaction.id === id,
+    );
+    if (index === -1) {
+      throw new NotFoundException(`Transaction with id ${id} not found`);
+    }
+    this.transactions.splice(index, 1);
+    return `Successfully deleted transaction with id ${id}`;
+  }
 }
