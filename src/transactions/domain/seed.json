@@ -1,0 +1,47 @@
+[
+    {
+      "id": "TRX-001",
+      "amount": 15000,
+      "description": "Almuerzo en restaurante",
+      "category": "Alimentación",
+      "method": "cash",
+      "type": "expense",
+      "date": "2026-10-25T12:30:00.000Z"
+    },
+    {
+      "id": "TRX-002",
+      "amount": 250000,
+      "description": "Pago por servicio de barbería",
+      "category": "Trabajo",
+      "method": "transfer",
+      "type": "income",
+      "date": "2026-10-26T15:00:00.000Z"
+    },
+    {
+      "id": "TRX-003",
+      "amount": 45000,
+      "description": "Pago de transporte semanal",
+      "category": "Transporte",
+      "method": "credit_card",
+      "type": "expense",
+      "date": "2026-10-27T08:00:00.000Z"
+    },
+    {
+      "id": "TRX-004",
+      "amount": 80000,
+      "description": "Compra de mercado",
+      "category": "Hogar",
+      "method": "cash",
+      "type": "expense",
+      "date": "2026-10-28T17:45:00.000Z"
+    },
+    {
+      "id": "TRX-005",
+      "amount": 120000,
+      "description": "Pago de desarrollo web freelance",
+      "category": "Freelance",
+      "method": "debit_card",
+      "type": "income",
+      "date": "2026-10-29T19:00:00.000Z"
+    }
+  ]

@@ -1,25 +1,4 @@
-import { TransactionMethod, TransactionType } from '../transaction.enum';
-import { IsNumber, IsInt, IsPositive, IsString, IsNotEmpty, IsEnum, IsDateString } from 'class-validator';
+import { PartialType, OmitType } from '@nestjs/mapped-types';
+import { createTransactionDto } from './create-transaction.dto';
 
-export class updateTransactionDto {
-    @IsNumber()
-    @IsInt()
-    @IsPositive()
-    amount!: number;
-
-    @IsString()
-    description!: string;
-
-    @IsString()
-    @IsNotEmpty()
-    category!: string;
-
-    @IsEnum(TransactionMethod)
-    method!: TransactionMethod;
-
-    @IsEnum(TransactionType)
-    type!: TransactionType;
-
-    @IsDateString()
-    date!: string;
-}
+export class updateTransactionDto extends PartialType(OmitType(createTransactionDto, ['id'] as const)){}
