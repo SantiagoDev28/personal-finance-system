@@ -18,17 +18,9 @@ export class TransactionController {
   }
 
   @Patch(':id')
-    update(
-      @Param('id') id: string,
-      @Body() transaction: updateTransactionDto,
-    ): Transaction {
-      const transactionData = {
-        ...transaction,
-        id,
-        date: new Date(transaction.date),
-      };
-      return this.transactionService.update(transactionData);
-    }
+  update(@Param('id') id: string, @Body() transaction: updateTransactionDto): Transaction {
+    return this.transactionService.update(id, transaction);
+  }
 
   @Get()
   findAll(): Transaction[] {
