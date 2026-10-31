@@ -3,6 +3,7 @@ import { Transaction } from './transaction.entity';
 import { updateTransactionDto } from './dto/update-transaction.dto';
 import { TransactionCategory, TransactionType } from './transaction.enum';
 import { TransactionMemory } from './transaction.memory';
+import { FilterTransactionDto } from './dto/filter-transaction.dto';
 
 @Injectable()
 export class TransactionService {
@@ -37,8 +38,8 @@ export class TransactionService {
     }
   }
 
-  findAll(): Transaction[] {
-    return this.transactionMemory.findAll();
+  findAll(filter: FilterTransactionDto): Transaction[] {
+    return this.transactionMemory.findByFilter(filter);
   }
 
   findById(id: string): Transaction {
