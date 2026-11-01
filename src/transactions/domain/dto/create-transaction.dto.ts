@@ -1,4 +1,4 @@
-import { TransactionMethod, TransactionType } from '../transaction.enum';
+import { TransactionCategory, TransactionMethod, TransactionType } from '../transaction.enum';
 import { IsNumber, IsInt, IsPositive, IsString, IsNotEmpty, IsEnum, IsDateString } from 'class-validator';
 
 export class createTransactionDto {
@@ -14,9 +14,8 @@ export class createTransactionDto {
     @IsString()
     description!: string;
 
-    @IsString()
-    @IsNotEmpty()
-    category!: string;
+    @IsEnum(TransactionCategory)
+    category!: TransactionCategory;
 
     @IsEnum(TransactionMethod)
     method!: TransactionMethod;

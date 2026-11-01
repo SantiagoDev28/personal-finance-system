@@ -1,8 +1,9 @@
-import { Controller, Body, Post, Get, Param, Patch, Delete } from '@nestjs/common';
+import { Controller, Body, Post, Get, Param, Patch, Delete, Query } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { Transaction } from './transaction.entity';
 import { updateTransactionDto } from './dto/update-transaction.dto';
 import { createTransactionDto } from './dto/create-transaction.dto';
+import { FilterTransactionDto } from './dto/filter-transaction.dto';
 
 @Controller('transactions')
 export class TransactionController {
@@ -28,8 +29,8 @@ export class TransactionController {
   }
 
   @Get()
-  findAll(): Transaction[] {
-    return this.transactionService.findAll();
+  findAll(@Query() filter: FilterTransactionDto): Transaction[] {
+    return this.transactionService.findAll(filter);
   }
 
   @Get('resume')

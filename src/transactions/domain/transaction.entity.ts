@@ -1,4 +1,4 @@
-import { TransactionMethod, TransactionType } from './transaction.enum';
+import { TransactionMethod, TransactionType, TransactionCategory } from './transaction.enum';
 import { BadRequestException } from '@nestjs/common';
 
 export class Transaction {
@@ -6,7 +6,7 @@ export class Transaction {
     public readonly id: string,
     public readonly amount: number,
     public readonly description: string,
-    public readonly category: string,
+    public readonly category: TransactionCategory,
     public readonly method: TransactionMethod,
     public readonly type: TransactionType,
     public readonly date: Date,
@@ -16,7 +16,7 @@ export class Transaction {
     id: string;
     amount: number;
     description: string;
-    category: string;
+    category: TransactionCategory;
     method: TransactionMethod;
     type: TransactionType;
     date: Date;
@@ -60,7 +60,7 @@ export class Transaction {
     id: string;
     amount: number;
     description: string;
-    category: string;
+    category: TransactionCategory;
     method: TransactionMethod;
     type: TransactionType;
     date: Date;
