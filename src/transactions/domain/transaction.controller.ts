@@ -7,7 +7,7 @@ import { FilterTransactionDto } from './dto/filter-transaction.dto';
 
 @Controller('transactions')
 export class TransactionController {
-  constructor(private readonly transactionService: TransactionService) {}
+  constructor(private readonly transactionService: TransactionService) { }
 
   @Post()
   create(@Body() transaction: createTransactionDto): Transaction {
@@ -18,6 +18,21 @@ export class TransactionController {
     return this.transactionService.create(transactionData);
   }
 
+  @Get()
+  findAll(@Query() filter: FilterTransactionDto): Transaction[] {
+    return this.transactionService.findAll(filter);
+  }
+
+  @Get('resume')
+  resume(@Query() filter: FilterTransactionDto) {
+    return this.transactionService.resume(filter);
+  }
+
+  @Get(':id')
+  findById(@Param('id') id: string): Transaction {
+    return this.transactionService.findById(id);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() transaction: updateTransactionDto): Transaction {
     return this.transactionService.update(id, transaction);
@@ -26,20 +41,5 @@ export class TransactionController {
   @Delete(':id')
   delete(@Param('id') id: string): { message: string; } {
     return this.transactionService.delete(id);
-  }
-
-  @Get()
-  findAll(@Query() filter: FilterTransactionDto): Transaction[] {
-    return this.transactionService.findAll(filter);
-  }
-
-  @Get('resume')
-  resume(): { income: number; expense: number; balance: number } {
-    return this.transactionService.resume();
-  }
-
-  @Get(':id')
-  findById(@Param('id') id: string): Transaction {
-    return this.transactionService.findById(id);
   }
 }
