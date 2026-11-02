@@ -1,8 +1,8 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import {  Injectable } from '@nestjs/common';
 import { Transaction } from './transaction.entity';
 import { updateTransactionDto } from './dto/update-transaction.dto';
-import { TransactionType } from './transaction.enum';
 import { TransactionMemory } from './transaction.memory';
+import { FilterTransactionDto } from './dto/filter-transaction.dto';
 
 @Injectable()
 export class TransactionService {
@@ -37,32 +37,16 @@ export class TransactionService {
     }
   }
 
-  findAll(): Transaction[] {
-    return this.transactionMemory.findAll();
+  findAll(filter: FilterTransactionDto): Transaction[] {
+    return this.transactionMemory.findByFilter(filter);
   }
 
   findById(id: string): Transaction {
     return this.transactionMemory.findById(id);
   }
   
-  resume() {
-    const summary = this.transactionMemory.findAll().reduce(
-      (acc, transaction) => {
-        if (transaction.type === TransactionType.INCOME) {
-          acc.income += transaction.amount;
-        } else if (transaction.type === TransactionType.EXPENSE) {
-          acc.expense += transaction.amount;
-        }
-
-        return acc;
-      },
-      { income: 0, expense: 0 },
-    );
-
-    return {
-      income: summary.income,
-      expense: summary.expense,
-      balance: summary.income - summary.expense,
-    };
+  resume(filter?: FilterTransactionDto) {
+    const transactions = filter ? this.transactionMemory.findByFilter(filter) : this.transactionMemory.findAll();
+    return this.transactionMemory.calculateResume(transactions);
   }
 }

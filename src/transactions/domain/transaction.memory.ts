@@ -1,5 +1,7 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Transaction } from './transaction.entity';
+import { FilterTransactionDto } from './dto/filter-transaction.dto';
+import { TransactionType } from './transaction.enum';
 
 export class TransactionMemory {
   private transactions: Transaction[] = [];
@@ -13,11 +15,11 @@ export class TransactionMemory {
   }
   update(updatedTransaction: Transaction): Transaction {
     const index = this.transactions.findIndex(
-    (transaction) => transaction.id === updatedTransaction.id,
+      (transaction) => transaction.id === updatedTransaction.id,
     )
-    
-    if(index === -1){
-      throw new NotFoundException (
+
+    if (index === -1) {
+      throw new NotFoundException(
         `Transaction with id ${updatedTransaction.id} not found`
       )
     }
@@ -37,6 +39,39 @@ export class TransactionMemory {
       throw new NotFoundException(`Transaction with id ${id} not found`);
     }
     return transaction;
+  }
+
+  findByFilter(filter: FilterTransactionDto): Transaction[] {
+    return this.transactions.filter((transaction) => {
+      const matchesType = !filter.type || transaction.type === filter.type;
+      const matchesCategory = !filter.category || transaction.category === filter.category;
+      const matchesStartDate = !filter.startDate || transaction.date >= new Date(filter.startDate);
+
+      const endDate = filter.endDate ? new Date(filter.endDate) : null;
+      if (endDate && /^\d{4}-\d{2}-\d{2}$/.test(filter.endDate!)) {
+        endDate.setUTCHours(23, 59, 59, 999);
+      }
+
+      const matchesEndDate = !endDate || transaction.date <= endDate;
+
+      return matchesType && matchesCategory && matchesStartDate && matchesEndDate;
+    });
+  }
+
+  calculateResume(transactions: Transaction[]) {
+    const income = transactions
+    .filter((transaction) => transaction.type === TransactionType.INCOME)
+    .reduce((total, transaction) => total + transaction.amount, 0);
+
+    const expense = transactions
+    .filter((transaction) => transaction.type === TransactionType.EXPENSE)
+    .reduce((total, transaction) => total + transaction.amount, 0);
+
+    return {
+      income,
+      expense,
+      balance: income - expense,
+    };
   }
 
   delete(id: string): string {

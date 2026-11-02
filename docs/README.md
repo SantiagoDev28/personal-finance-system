@@ -30,6 +30,7 @@ La página [Plan Financiero](https://app.notion.com/p/305f454b5630808bb33ddd0fbf
 | [docs/capture-iphone/shortcuts.md](docs/capture-iphone/shortcuts.md) | Cómo capturan hoy los atajos. Es referencia, no el plan de programación |
 | [docs/development/workflow.md](development/workflow.md) | Ramas, Conventional Commits y smart commits con PER |
 | [docs/decisions/ADR-0001-dinero-moneda-y-fecha.md](decisions/ADR-0001-dinero-moneda-y-fecha.md) | Moneda COP, peso entero y fecha del movimiento |
+| [docs/decisions/ADR-0002-rango-de-fechas.md](decisions/ADR-0002-rango-de-fechas.md) | `startDate` es la fecha de inicio; `endDate` llega hasta el último segundo del día |
 
 ## Principios
 
