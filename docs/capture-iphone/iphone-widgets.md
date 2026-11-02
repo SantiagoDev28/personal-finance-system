@@ -1,6 +1,6 @@
 # Widgets de iPhone (sin formulario Notion)
 
-Referencia de la captura actual en el teléfono. La aplicación web no se construye como widget: consume lo que estos atajos dejan en Notion. Contexto: [../context.md](../context.md).
+Referencia de la captura actual en el teléfono. El atajo todavía deja el movimiento en Notion. El plan siguiente lo envía a la API: [../decisions/ADR-0003-captura-directa.md](../decisions/ADR-0003-captura-directa.md).
 
 El widget nativo de Notion **solo abre una página**. No pregunta el monto ni crea un movimiento.
 

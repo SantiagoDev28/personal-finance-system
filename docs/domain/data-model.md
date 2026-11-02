@@ -1,6 +1,6 @@
 # Modelo de datos
 
-Forma actual de las bases en Notion. La aplicación web las consume y reescribe los movimientos en su base permanente. La decisión está en [../context.md](../context.md).
+Forma actual de las bases en Notion. Describen el hub que existe hoy. La aplicación no las lee: el registro nuevo entra por la API, como dice [../decisions/ADR-0003-captura-directa.md](../decisions/ADR-0003-captura-directa.md).
 
 Cuatro bases bajo el hub [Finanzas](https://app.notion.com/p/3cff454b5630814690fec87bfbd8b82a).
 

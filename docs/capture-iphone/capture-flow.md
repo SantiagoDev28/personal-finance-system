@@ -1,6 +1,6 @@
 # Flujo de captura
 
-Cómo se registra un movimiento hoy, antes de la aplicación web. El canal del iPhone está en [shortcuts.md](shortcuts.md) y [iphone-widgets.md](iphone-widgets.md). La aplicación que se va a construir consume el resultado ya escrito en Notion: [../context.md](../context.md).
+Cómo se registra un movimiento hoy: el atajo escribe en Notion. El canal del iPhone está en [shortcuts.md](shortcuts.md) y [iphone-widgets.md](iphone-widgets.md). El plan que sigue es otro. El atajo hará `POST` a la API y PostgreSQL guardará el movimiento: [../decisions/ADR-0003-captura-directa.md](../decisions/ADR-0003-captura-directa.md). Esta carpeta no es ese plan.
 
 El hábito muere si el flujo es: abrir Notion → buscar página → abrir database → nueva fila → 7 campos.
 
