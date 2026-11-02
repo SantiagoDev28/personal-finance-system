@@ -129,6 +129,8 @@ sin reescribirlo por estética.
     documentados.
 -   Los cambios están divididos en commits comprensibles.
 
+Nota de producto, noviembre 2026. Después de V0.2 el camino ya no es leer Notion. El atajo del iPhone hará `POST` con JSON a la API y PostgreSQL guardará el movimiento. El detalle está en `docs/decisions/ADR-0003-captura-directa.md`. V0.3 sigue siendo la persistencia de lo que la API ya hace en memoria.
+
 ## V0.3 --- Persistencia con PostgreSQL
 
 **Objetivo:** guardar datos de forma persistente y comprender las

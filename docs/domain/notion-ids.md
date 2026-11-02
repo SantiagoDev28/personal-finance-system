@@ -1,6 +1,6 @@
 # IDs de Notion
 
-Lista canónica para leer y reescribir estas bases. No incluye el token. Si un atajo del iPhone muestra otra etiqueta de cuenta, manda el `page_id` de este archivo. Contexto: [../context.md](../context.md).
+Lista canónica de las bases del hub Finanzas. No incluye el token. Si un atajo del iPhone muestra otra etiqueta de cuenta, manda el `page_id` de este archivo. Estos ids no son el contrato del POST: [../decisions/ADR-0003-captura-directa.md](../decisions/ADR-0003-captura-directa.md).
 
 Hub: [Finanzas](https://app.notion.com/p/3cff454b5630814690fec87bfbd8b82a) — `3cff454b-5630-8146-90fe-c87bfbd8b82a`
 
