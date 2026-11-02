@@ -1,6 +1,7 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Transaction } from './transaction.entity';
 import { FilterTransactionDto } from './dto/filter-transaction.dto';
+import { TransactionType } from './transaction.enum';
 
 export class TransactionMemory {
   private transactions: Transaction[] = [];
@@ -56,6 +57,23 @@ export class TransactionMemory {
       return matchesType && matchesCategory && matchesStartDate && matchesEndDate;
     });
   }
+
+  calculateResume(transactions: Transaction[]) {
+    const income = transactions
+    .filter((transaction) => transaction.type === TransactionType.INCOME)
+    .reduce((total, transaction) => total + transaction.amount, 0);
+
+    const expense = transactions
+    .filter((transaction) => transaction.type === TransactionType.EXPENSE)
+    .reduce((total, transaction) => total + transaction.amount, 0);
+
+    return {
+      income,
+      expense,
+      balance: income - expense,
+    };
+  }
+
   delete(id: string): string {
     const index = this.transactions.findIndex(
       (transaction) => transaction.id === id,

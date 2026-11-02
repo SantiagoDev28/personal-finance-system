@@ -1,6 +1,10 @@
 import { TransactionService } from '../transaction.service';
 import { TransactionMemory } from '../transaction.memory';
-import { TransactionMethod, TransactionType } from '../transaction.enum';
+import {
+  TransactionCategory,
+  TransactionMethod,
+  TransactionType,
+} from '../transaction.enum';
 
 describe('TransactionsService', () => {
   let service: TransactionService;
@@ -21,7 +25,7 @@ describe('TransactionsService', () => {
       type: TransactionType.INCOME,
       date: new Date('2026-09-02T00:00:00.000Z'),
     });
-    expect(service.findAll()).toEqual([
+    expect(service.findAll({})).toEqual([
       {
         id: '1',
         amount: 500,
@@ -160,7 +164,7 @@ describe('TransactionsService', () => {
       date: new Date(updatedDate),
     });
     expect(service.findById('6')).toEqual(result);
-    expect(service.findAll()).toHaveLength(2);
+    expect(service.findAll({})).toHaveLength(2);
     expect(service.findById('7')).toEqual({
       id: '7',
       amount: 100000,
@@ -272,7 +276,7 @@ describe('TransactionsService', () => {
     expect(service.delete('11')).toEqual({
       message: 'Transaction with id 11 deleted successfully',
     });
-    expect(service.findAll()).toEqual([
+    expect(service.findAll({})).toEqual([
       {
         id: '10',
         amount: 100000,
@@ -298,4 +302,145 @@ describe('TransactionsService', () => {
       'Transaction with id 99 not found',
     );
   });
+
+  it('should include a stored instant from the start of startDate through the last second of endDate', () => {
+    // startDate is that calendar date at 00:00:00.000 UTC.
+    // endDate as YYYY-MM-DD includes the day through its last second, 23:59:59.999 UTC.
+    seedOctoberRange(service);
+    const filter = { startDate: '2026-10-01', endDate: '2026-10-03' };
+
+    expect(service.findAll(filter).map((transaction) => transaction.id)).toEqual([
+      'start',
+      'middle',
+      'end-afternoon',
+      'end-last',
+    ]);
+    expect(service.resume(filter)).toEqual({
+      income: 13000,
+      expense: 6000,
+      balance: 7000,
+    });
+    expect(service.resume(filter)).toEqual(
+      memory.calculateResume(service.findAll(filter)),
+    );
+    expect(service.resume()).toEqual({
+      income: 13000,
+      expense: 12000,
+      balance: 1000,
+    });
+  });
+
+  it('should keep an endDate that includes a time at that instant', () => {
+    seedOctoberRange(service);
+    const filter = {
+      startDate: '2026-10-01',
+      endDate: '2026-10-03T12:00:00.000Z',
+    };
+
+    expect(service.findAll(filter).map((transaction) => transaction.id)).toEqual([
+      'start',
+      'middle',
+    ]);
+    expect(service.resume(filter)).toEqual({
+      income: 10000,
+      expense: 4000,
+      balance: 6000,
+    });
+  });
+
+  it('should return an empty list and a zero resume when the range has no transactions', () => {
+    seedOctoberRange(service);
+    const filter = { startDate: '2026-11-01', endDate: '2026-11-02' };
+
+    expect(service.findAll(filter)).toEqual([]);
+    expect(service.resume(filter)).toEqual({
+      income: 0,
+      expense: 0,
+      balance: 0,
+    });
+    expect(service.resume()).toEqual(
+      memory.calculateResume(service.findAll({})),
+    );
+  });
+
+  it('should filter the resume by type, category and date range together', () => {
+    seedOctoberRange(service);
+    const filter = {
+      type: TransactionType.EXPENSE,
+      category: TransactionCategory.FOOD,
+      startDate: '2026-10-01',
+      endDate: '2026-10-03',
+    };
+
+    expect(service.findAll(filter).map((transaction) => transaction.id)).toEqual([
+      'middle',
+    ]);
+    expect(service.resume(filter)).toEqual({
+      income: 0,
+      expense: 4000,
+      balance: -4000,
+    });
+    expect(service.resume(filter)).toEqual(
+      memory.calculateResume(service.findAll(filter)),
+    );
+  });
 });
+
+function seedOctoberRange(service: TransactionService) {
+  const rows = [
+    {
+      id: 'before',
+      amount: 1000,
+      type: TransactionType.EXPENSE,
+      category: TransactionCategory.FOOD,
+      date: '2026-09-30T23:59:59.999Z',
+    },
+    {
+      id: 'start',
+      amount: 10000,
+      type: TransactionType.INCOME,
+      category: TransactionCategory.OTHER,
+      date: '2026-10-01T00:00:00.000Z',
+    },
+    {
+      id: 'middle',
+      amount: 4000,
+      type: TransactionType.EXPENSE,
+      category: TransactionCategory.FOOD,
+      date: '2026-10-02T15:00:00.000Z',
+    },
+    {
+      id: 'end-afternoon',
+      amount: 2000,
+      type: TransactionType.EXPENSE,
+      category: TransactionCategory.TRANSPORTATION,
+      date: '2026-10-03T15:00:00.000Z',
+    },
+    {
+      id: 'end-last',
+      amount: 3000,
+      type: TransactionType.INCOME,
+      category: TransactionCategory.FOOD,
+      date: '2026-10-03T23:59:59.999Z',
+    },
+    {
+      id: 'after',
+      amount: 5000,
+      type: TransactionType.EXPENSE,
+      category: TransactionCategory.FOOD,
+      date: '2026-10-04T00:00:00.000Z',
+    },
+  ];
+
+  for (const row of rows) {
+    service.create({
+      id: row.id,
+      amount: row.amount,
+      description: row.id,
+      category: row.category,
+      method: TransactionMethod.CASH,
+      type: row.type,
+      date: new Date(row.date),
+    });
+  }
+}
