@@ -1,16 +1,15 @@
 ---
-description: Dirección del sistema de finanzas. La web NestJS consume Notion y persiste ingresos y gastos con trazabilidad.
+description: Dirección del sistema de finanzas. El atajo envía el movimiento a la API NestJS y PostgreSQL lo guarda.
 alwaysApply: true
 ---
 
 # Finanzas personales
 
-La decisión vive en `docs/context.md`. Este repositorio todavía no tiene aplicación.
+La decisión vive en `docs/context.md` y en `docs/decisions/ADR-0003-captura-directa.md`.
 
-- El producto a construir es una web hecha a mano. El servidor es NestJS, creado desde cero en este repo cuando se pida.
-- Notion (hub Finanzas) es la fuente. La app lee movimientos, cuentas, categorías y presupuestos, los reescribe en su propia base y los guarda de forma permanente.
-- Cada ingreso y cada gasto queda trazable: id propio, `page_id` de Notion, tipo, valor positivo, fecha, categoría, cuenta y constancia si el origen cambia.
-- Moneda COP. Plan Financiero queda fuera de este registro.
-- Los ids canónicos están en `docs/domain/notion-ids.md`. El modelo está en `docs/domain/data-model.md`.
-- `docs/capture-iphone/` describe los atajos que escriben en Notion hoy. Esa carpeta no es el plan de implementación.
-- Hasta que se pida el proyecto, no generes NestJS ni escribas código de aplicación.
+- El servidor NestJS ya está en este repositorio. Registra movimientos en memoria: alta, lista, consulta, edición, borrado, filtros y saldo.
+- El camino siguiente es: atajo del iPhone → HTTP POST JSON → `POST /transactions` → PostgreSQL. Notion no es la fuente que la aplicación lee.
+- Moneda COP. Valor positivo. El tipo dice si es ingreso o gasto. Plan Financiero queda fuera.
+- `docs/capture-iphone/` describe los atajos que todavía escriben en Notion. Esa carpeta no es el plan de implementación.
+- `docs/domain/` describe el hub de Notion que existe hoy, no el contrato del POST.
+- Los sprints siguientes, en orden: persistir en PostgreSQL, ajustar el JSON al formulario del atajo, apuntar el atajo a la API.
