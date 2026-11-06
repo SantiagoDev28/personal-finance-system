@@ -1,6 +1,6 @@
 # Finanzas personales
 
-Registro de ingresos y gastos en memoria. NestJS valida cada movimiento, lo guarda, lo lista, lo edita, lo borra y calcula ingresos, gastos y saldo. No hay base de datos: al reiniciar el servidor la lista vuelve a quedar vacía.
+Registro de ingresos y gastos en memoria. NestJS valida cada movimiento, lo guarda, lo lista, lo edita, lo borra y calcula ingresos, gastos y saldo. El arranque exige un PostgreSQL local, pero las filas siguen en memoria: al reiniciar el servidor la lista vuelve a quedar vacía.
 
 La moneda es COP y el monto se guarda como un peso entero positivo. El tipo dice si suma o resta. La decisión está en [docs/decisions/ADR-0001-dinero-moneda-y-fecha.md](docs/decisions/ADR-0001-dinero-moneda-y-fecha.md). El camino siguiente, atajo → API → PostgreSQL, está en [docs/decisions/ADR-0003-captura-directa.md](docs/decisions/ADR-0003-captura-directa.md).
 
@@ -27,13 +27,39 @@ pnpm run lint
 
 `pnpm run format` reescribe `src/**/*.ts` y `test/**/*.ts` con Prettier. `pnpm run lint` ejecuta ESLint sobre el proyecto y corrige lo que la configuración permite. Los dos comandos tienen que terminar sin error.
 
+## Base local
+
+PostgreSQL queda instalado en la máquina. La aplicación Nest no corre en Docker. La decisión de usar SQL explícito, sin ORM, está en [docs/decisions/ADR-0004-acceso-postgresql.md](docs/decisions/ADR-0004-acceso-postgresql.md).
+
+1. Instala PostgreSQL 16 y deja el servicio escuchando en el puerto `5432`.
+2. En `psql`, como superusuario de esa instalación:
+
+```sql
+CREATE USER finance WITH PASSWORD 'finance_local_only';
+CREATE DATABASE personal_finance OWNER finance;
+```
+
+3. Copia el ejemplo. Los valores son ficticios y `.env` no se versiona.
+
+```bash
+cp .env.example .env
+```
+
+En PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
 ## Arranque
 
 ```bash
 pnpm run start:dev
 ```
 
-El servidor queda en [http://localhost:3000](http://localhost:3000).
+Sin `.env`, o con `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USER`, `DATABASE_PASSWORD` o `DATABASE_NAME` vacíos, el proceso escribe qué falta y termina. No abre el puerto. Si las variables están y PostgreSQL rechaza la conexión, el proceso también termina y muestra el error.
+
+Con la base creada y el `.env` presente, el servidor queda en [http://localhost:3000](http://localhost:3000). Los movimientos de esa sesión siguen en memoria.
 
 ## Probar un movimiento y el saldo
 
