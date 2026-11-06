@@ -30,6 +30,7 @@ La página [Plan Financiero](https://app.notion.com/p/305f454b5630808bb33ddd0fbf
 | [docs/decisions/ADR-0001-dinero-moneda-y-fecha.md](decisions/ADR-0001-dinero-moneda-y-fecha.md) | Moneda COP, peso entero y fecha del movimiento |
 | [docs/decisions/ADR-0002-rango-de-fechas.md](decisions/ADR-0002-rango-de-fechas.md) | `startDate` es la fecha de inicio; `endDate` llega hasta el último segundo del día |
 | [docs/decisions/ADR-0003-captura-directa.md](decisions/ADR-0003-captura-directa.md) | El atajo hace POST a la API; PostgreSQL guarda el movimiento |
+| [docs/decisions/ADR-0004-acceso-postgresql.md](decisions/ADR-0004-acceso-postgresql.md) | SQL explícito con `pg`. Sin ORM |
 
 ## Principios
 
