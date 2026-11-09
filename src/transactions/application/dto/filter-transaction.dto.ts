@@ -1,4 +1,4 @@
-import { TransactionCategory, TransactionType } from "../transaction.enum";
+import { TransactionCategory, TransactionType } from "../../domain/enums/transaction.enum";
 import { IsString, IsEnum, IsOptional } from "class-validator";
 
 

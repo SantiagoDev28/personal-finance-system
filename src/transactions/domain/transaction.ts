@@ -1,4 +1,4 @@
-import { TransactionMethod, TransactionType } from './transaction.enum';
+import { TransactionMethod, TransactionType } from './enums/transaction.enum';
 
 export class Transaction {
   private constructor(

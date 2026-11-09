@@ -1,9 +1,9 @@
 import { Controller, Body, Post, Get, Param, Patch, Delete, Query } from '@nestjs/common';
-import { TransactionService } from './transaction.service';
-import { Transaction } from './transaction.entity';
-import { updateTransactionDto } from './dto/update-transaction.dto';
-import { createTransactionDto } from './dto/create-transaction.dto';
-import { FilterTransactionDto } from './dto/filter-transaction.dto';
+import { TransactionService } from '../../application/transaction.service';
+import { Transaction } from '../../domain/entities/transaction.entity';
+import { updateTransactionDto } from '../../application/dto/update-transaction.dto';
+import { createTransactionDto } from '../../application/dto/create-transaction.dto';
+import { FilterTransactionDto } from '../../application/dto/filter-transaction.dto';
 
 @Controller('transactions')
 export class TransactionController {

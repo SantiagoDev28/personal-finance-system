@@ -1,9 +1,10 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { Transaction } from './transaction.entity';
-import { FilterTransactionDto } from './dto/filter-transaction.dto';
-import { TransactionType } from './transaction.enum';
+import { Transaction } from '../../domain/entities/transaction.entity';
+import { FilterTransactionDto } from '../../application/dto/filter-transaction.dto';
+import { TransactionType } from '../../domain/enums/transaction.enum';
+import { TransactionRepository } from '../../domain/repositories/transaction.repository';
 
-export class TransactionMemory {
+export class TransactionMemory implements TransactionRepository {
   private transactions: Transaction[] = [];
 
   save(newTransaction: Transaction): Transaction {
