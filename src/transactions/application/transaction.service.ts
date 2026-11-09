@@ -1,21 +1,25 @@
-import {  Injectable } from '@nestjs/common';
-import { Transaction } from './transaction.entity';
+import { Inject, Injectable } from '@nestjs/common';
+import { Transaction } from '../domain/entities/transaction.entity';
 import { updateTransactionDto } from './dto/update-transaction.dto';
-import { TransactionMemory } from './transaction.memory';
 import { FilterTransactionDto } from './dto/filter-transaction.dto';
+import type { TransactionRepository } from '../domain/repositories/transaction.repository';
+import { TRANSACTION_REPOSITORY } from '../domain/repositories/transaction-repository.token';
 
 @Injectable()
 export class TransactionService {
-  constructor(private readonly transactionMemory: TransactionMemory) {}
+  constructor(
+    @Inject(TRANSACTION_REPOSITORY)
+    private readonly transactionRepository: TransactionRepository,
+  ) {}
 
   create(transaction: Transaction): Transaction {
     const newTransaction = Transaction.create(transaction);
-    this.transactionMemory.save(newTransaction);
+    this.transactionRepository.save(newTransaction);
     return newTransaction;
   }
 
   update(id: string, data: updateTransactionDto): Transaction {
-    const existingTransaction = this.transactionMemory.findById(id);
+    const existingTransaction = this.transactionRepository.findById(id);
 
     const updatedTransaction = Transaction.create({
       id: existingTransaction.id,
@@ -26,27 +30,27 @@ export class TransactionService {
       type: data.type ?? existingTransaction.type,
       date: data.date !== undefined ? new Date(data.date) : existingTransaction.date,
     });
-    return this.transactionMemory.update(updatedTransaction);
-    
+    return this.transactionRepository.update(updatedTransaction);
+
   }
 
   delete(id: string): { message: string; } {
-    this.transactionMemory.delete(id);
+    this.transactionRepository.delete(id);
     return {
       message: `Transaction with id ${id} deleted successfully`,
     }
   }
 
   findAll(filter: FilterTransactionDto): Transaction[] {
-    return this.transactionMemory.findByFilter(filter);
+    return this.transactionRepository.findByFilter(filter);
   }
 
   findById(id: string): Transaction {
-    return this.transactionMemory.findById(id);
+    return this.transactionRepository.findById(id);
   }
-  
+
   resume(filter?: FilterTransactionDto) {
-    const transactions = filter ? this.transactionMemory.findByFilter(filter) : this.transactionMemory.findAll();
-    return this.transactionMemory.calculateResume(transactions);
+    const transactions = filter ? this.transactionRepository.findByFilter(filter) : this.transactionRepository.findAll();
+    return this.transactionRepository.calculateResume(transactions);
   }
 }

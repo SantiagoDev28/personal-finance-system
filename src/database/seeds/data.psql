@@ -1,0 +1,21 @@
+INSERT INTO transaction_categories (name, code)
+VALUES
+    ('Alimentación', 'food'),
+    ('Transporte', 'transportation'),
+    ('Vivienda', 'housing'),
+    ('Servicios', 'utilities'),
+    ('Entretenimiento', 'entertainment'),
+    ('Otros', 'other');
+
+INSERT INTO transaction_methods (name, code)
+VALUES
+    ('Efectivo', 'cash'),
+    ('Tarjeta de crédito', 'credit_card'),
+    ('Tarjeta débito', 'debit_card'),
+    ('Transferencia', 'transfer'),
+    ('Otros', 'other');
+
+INSERT INTO transaction_types (name, code)
+VALUES
+    ('Ingreso', 'income'),
+    ('Gasto', 'expense');
