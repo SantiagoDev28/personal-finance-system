@@ -321,7 +321,7 @@ describe('TransactionsService', () => {
       balance: 7000,
     });
     expect(service.resume(filter)).toEqual(
-      memory.calculateResume(service.findAll(filter)),
+      calculateResume(service.findAll(filter)),
     );
     expect(service.resume()).toEqual({
       income: 13000,
@@ -358,9 +358,7 @@ describe('TransactionsService', () => {
       expense: 0,
       balance: 0,
     });
-    expect(service.resume()).toEqual(
-      memory.calculateResume(service.findAll({})),
-    );
+    expect(service.resume()).toEqual(calculateResume(service.findAll({})));
   });
 
   it('should filter the resume by type, category and date range together', () => {
@@ -381,10 +379,21 @@ describe('TransactionsService', () => {
       balance: -4000,
     });
     expect(service.resume(filter)).toEqual(
-      memory.calculateResume(service.findAll(filter)),
+      calculateResume(service.findAll(filter)),
     );
   });
 });
+
+function calculateResume(transactions: { type: TransactionType; amount: number }[]) {
+  const income = transactions
+    .filter((transaction) => transaction.type === TransactionType.INCOME)
+    .reduce((total, transaction) => total + transaction.amount, 0);
+  const expense = transactions
+    .filter((transaction) => transaction.type === TransactionType.EXPENSE)
+    .reduce((total, transaction) => total + transaction.amount, 0);
+
+  return { income, expense, balance: income - expense };
+}
 
 function seedOctoberRange(service: TransactionService) {
   const rows = [

@@ -11,6 +11,10 @@ export class FilterTransactionDto {
     @IsEnum(TransactionType)
     type?: TransactionType;
 
+    @IsOptional()
+    @IsString()
+    method?: string;
+
     @IsString()
     @IsOptional()
     startDate?: string;
@@ -18,4 +22,4 @@ export class FilterTransactionDto {
     @IsString()
     @IsOptional()
     endDate?: string;
-}
+} 

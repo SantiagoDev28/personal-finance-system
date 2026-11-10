@@ -1,8 +1,8 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Transaction } from '../../domain/entities/transaction.entity';
-import { FilterTransactionDto } from '../../application/dto/filter-transaction.dto';
 import { TransactionType } from '../../domain/enums/transaction.enum';
 import { TransactionRepository } from '../../domain/repositories/transaction.repository';
+import { TransactionFilter } from '../../domain/repositories/transaction-filter';
 
 export class TransactionMemory implements TransactionRepository {
   private transactions: Transaction[] = [];
@@ -42,7 +42,7 @@ export class TransactionMemory implements TransactionRepository {
     return transaction;
   }
 
-  findByFilter(filter: FilterTransactionDto): Transaction[] {
+  findByFilter(filter: TransactionFilter): Transaction[] {
     return this.transactions.filter((transaction) => {
       const matchesType = !filter.type || transaction.type === filter.type;
       const matchesCategory = !filter.category || transaction.category === filter.category;
@@ -59,14 +59,14 @@ export class TransactionMemory implements TransactionRepository {
     });
   }
 
-  calculateResume(transactions: Transaction[]) {
+  /*calculateResume(transactions: Transaction[]) {
     const income = transactions
-    .filter((transaction) => transaction.type === TransactionType.INCOME)
-    .reduce((total, transaction) => total + transaction.amount, 0);
+      .filter((transaction) => transaction.type === TransactionType.INCOME)
+      .reduce((total, transaction) => total + transaction.amount, 0);
 
     const expense = transactions
-    .filter((transaction) => transaction.type === TransactionType.EXPENSE)
-    .reduce((total, transaction) => total + transaction.amount, 0);
+      .filter((transaction) => transaction.type === TransactionType.EXPENSE)
+      .reduce((total, transaction) => total + transaction.amount, 0);
 
     return {
       income,
@@ -74,6 +74,7 @@ export class TransactionMemory implements TransactionRepository {
       balance: income - expense,
     };
   }
+  */
 
   delete(id: string): string {
     const index = this.transactions.findIndex(
