@@ -59,14 +59,14 @@ export class TransactionMemory implements TransactionRepository {
     });
   }
 
-  calculateResume(transactions: Transaction[]) {
+  /*calculateResume(transactions: Transaction[]) {
     const income = transactions
-    .filter((transaction) => transaction.type === TransactionType.INCOME)
-    .reduce((total, transaction) => total + transaction.amount, 0);
+      .filter((transaction) => transaction.type === TransactionType.INCOME)
+      .reduce((total, transaction) => total + transaction.amount, 0);
 
     const expense = transactions
-    .filter((transaction) => transaction.type === TransactionType.EXPENSE)
-    .reduce((total, transaction) => total + transaction.amount, 0);
+      .filter((transaction) => transaction.type === TransactionType.EXPENSE)
+      .reduce((total, transaction) => total + transaction.amount, 0);
 
     return {
       income,
@@ -74,6 +74,7 @@ export class TransactionMemory implements TransactionRepository {
       balance: income - expense,
     };
   }
+  */
 
   delete(id: string): string {
     const index = this.transactions.findIndex(
