@@ -1,8 +1,8 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Transaction } from '../../domain/entities/transaction.entity';
-import { FilterTransactionDto } from '../../application/dto/filter-transaction.dto';
 import { TransactionType } from '../../domain/enums/transaction.enum';
 import { TransactionRepository } from '../../domain/repositories/transaction.repository';
+import { TransactionFilter } from '../../domain/repositories/transaction-filter';
 
 export class TransactionMemory implements TransactionRepository {
   private transactions: Transaction[] = [];
@@ -42,7 +42,7 @@ export class TransactionMemory implements TransactionRepository {
     return transaction;
   }
 
-  findByFilter(filter: FilterTransactionDto): Transaction[] {
+  findByFilter(filter: TransactionFilter): Transaction[] {
     return this.transactions.filter((transaction) => {
       const matchesType = !filter.type || transaction.type === filter.type;
       const matchesCategory = !filter.category || transaction.category === filter.category;
