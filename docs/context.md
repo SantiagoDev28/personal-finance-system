@@ -6,7 +6,7 @@ Decisión de noviembre 2026. Este archivo es la referencia de lo que el sistema 
 
 El registro diario sigue en el hub **Finanzas** de Notion. Cuatro bases: Movimientos, Cuentas, Categorías y Presupuestos. En el iPhone, los atajos preguntan monto, categoría y cuenta, y escriben un movimiento con la API de Notion. Esa guía está en [capture-iphone/](capture-iphone/shortcuts.md). Los identificadores de ese hub están en [domain/notion-ids.md](domain/notion-ids.md).
 
-En este repositorio el servidor NestJS ya registra movimientos en memoria: alta, lista, consulta, edición, borrado, filtros y saldo. No hay base de datos. Al reiniciar, la lista queda vacía.
+En este repositorio el servidor NestJS registra el movimiento en PostgreSQL: alta, lista, consulta, edición, borrado, filtros y saldo. El saldo se calcula con las filas. La tabla se reconstruye con las migraciones de `src/database/migrations`: el monto es un entero mayor que 0, el tipo solo admite `income` o `expense`, y el id es único. No hay `page_id` ni columnas de Notion.
 
 [Plan Financiero](https://app.notion.com/p/305f454b5630808bb33ddd0fbf6d25c4) sigue aparte: metas, reglas y seguimiento anual. Este sistema es el registro de ingresos y gastos.
 
@@ -41,7 +41,7 @@ Estos objetivos de octubre salen del plan cercano:
 - Reescribir cada página en la base de la aplicación.
 - Guardar el `page_id` y una constancia cuando esa página cambie.
 
-El orden que los reemplaza está en [roadmap.md](roadmap.md): primero PostgreSQL, después el JSON que el atajo puede enviar, después apuntar el atajo a la API.
+El orden que los reemplaza está en [roadmap.md](roadmap.md): PostgreSQL ya guarda el movimiento. Sigue el JSON que el atajo puede enviar, y después apuntar el atajo a la API.
 
 ## Fuera de este tramo
 

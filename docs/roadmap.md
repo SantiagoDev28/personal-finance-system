@@ -1,6 +1,6 @@
 # Roadmap
 
-El servidor NestJS ya registra movimientos en memoria. PostgreSQL todavía no está. El camino de los sprints siguientes es el de [decisions/ADR-0003-captura-directa.md](decisions/ADR-0003-captura-directa.md): el atajo del iPhone hace `POST` a la API y la base guarda el movimiento.
+El servidor NestJS guarda el movimiento en PostgreSQL. El camino que sigue es el de [decisions/ADR-0003-captura-directa.md](decisions/ADR-0003-captura-directa.md): el atajo del iPhone hace `POST` a la API.
 
 ```text
 Atajo del iPhone
@@ -9,7 +9,7 @@ Atajo del iPhone
     → PostgreSQL
 ```
 
-Hoy el tercer paso vive en memoria. El atajo todavía escribe en Notion.
+El tercer paso ya es PostgreSQL. El atajo todavía escribe en Notion.
 
 ## Hecho
 
@@ -21,16 +21,16 @@ Hoy el tercer paso vive en memoria. El atajo todavía escribe en Notion.
 | Descripción de la captura que hoy escribe en Notion | [capture-iphone/](capture-iphone/shortcuts.md) |
 | Proyecto NestJS en este repositorio | [README](../README.md) |
 | Movimiento válido: COP, peso entero, ingreso o gasto | [decisions/ADR-0001-dinero-moneda-y-fecha.md](decisions/ADR-0001-dinero-moneda-y-fecha.md) |
-| Registro en memoria: alta, lista, consulta, edición, borrado y saldo | `src/transactions/` |
+| Registro en PostgreSQL: alta, lista, consulta, edición, borrado y saldo | `src/transactions/` |
+| Tabla del movimiento, con migraciones repetibles | `src/database/migrations/` |
 | Filtro por tipo, categoría y rango de fechas | [decisions/ADR-0002-rango-de-fechas.md](decisions/ADR-0002-rango-de-fechas.md) |
 | Lint y formato como comandos del README | [README](../README.md) |
 | Captura directa a la API, en lugar de leer Notion | [decisions/ADR-0003-captura-directa.md](decisions/ADR-0003-captura-directa.md) |
 
 ## Siguiente
 
-1. Guardar el movimiento en PostgreSQL. Crear, editar, borrar, filtrar y el saldo siguen igual, y el registro sobrevive al reinicio.
-2. Dejar el JSON de `POST /transactions` como el contrato del formulario del atajo. Hoy el atajo pregunta monto, categoría y cuenta; el POST pide `id`, `amount`, `description`, `category`, `method`, `type` y `date`.
-3. Apuntar el atajo del iPhone a ese POST. Hasta entonces sigue escribiendo en Notion.
+1. Dejar el JSON de `POST /transactions` como el contrato del formulario del atajo. Hoy el atajo pregunta monto, categoría y cuenta; el POST pide `id`, `amount`, `description`, `category`, `method`, `type` y `date`.
+2. Apuntar el atajo del iPhone a ese POST. Hasta entonces sigue escribiendo en Notion.
 
 ## Después de que el atajo escriba en la base
 

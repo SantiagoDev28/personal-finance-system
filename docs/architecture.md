@@ -21,13 +21,13 @@ Almacenamiento persistente
 | --- | --- |
 | Atajo | Preguntar el movimiento y enviarlo como JSON. Hoy escribe en Notion. El objetivo es `POST /transactions`. |
 | API | Validar y registrar el ingreso o el gasto. NestJS, en este repositorio. También lista, edita, borra, filtra y calcula el saldo. |
-| PostgreSQL | Guardar el registro de forma permanente. Todavía no está: al reiniciar, la lista en memoria se vacía. |
+| PostgreSQL | Guardar el registro. La tabla sale de las migraciones. El saldo no es una columna. |
 | Notion | Hub donde viven hoy los movimientos. Este tramo no lo lee. |
 | Plan Financiero | Metas y reglas. Permanece fuera de este registro. |
 
 ## Qué ya hace la API
 
-El módulo de movimientos guarda la lista en memoria.
+El módulo de movimientos guarda cada fila en PostgreSQL.
 
 - Alta en `POST /transactions`.
 - Lista, consulta por id, edición y borrado.
