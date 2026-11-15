@@ -1,6 +1,6 @@
 # Contexto
 
-Decisión de noviembre 2026. Este archivo es la referencia de lo que el sistema va a ser. El detalle de la captura directa está en [decisions/ADR-0003-captura-directa.md](decisions/ADR-0003-captura-directa.md).
+Decisión de noviembre 2026. Este archivo es la referencia de lo que el sistema va a ser. La captura directa está en [decisions/ADR-0003-captura-directa.md](decisions/ADR-0003-captura-directa.md). El sprint siguiente, el atajo contra la API, está en [decisions/ADR-0005-atajo-a-la-api.md](decisions/ADR-0005-atajo-a-la-api.md).
 
 ## Qué existe hoy
 
@@ -41,7 +41,7 @@ Estos objetivos de octubre salen del plan cercano:
 - Reescribir cada página en la base de la aplicación.
 - Guardar el `page_id` y una constancia cuando esa página cambie.
 
-El orden que los reemplaza está en [roadmap.md](roadmap.md): PostgreSQL ya guarda el movimiento. Sigue el JSON que el atajo puede enviar, y después apuntar el atajo a la API.
+El orden que los reemplaza está en [roadmap.md](roadmap.md). PostgreSQL ya guarda el movimiento. El sprint siguiente apunta los atajos de ingreso y de gasto a `POST /transactions`. El cuerpo es el formulario del atajo. No hay una lectura de Notion en el medio.
 
 ## Fuera de este tramo
 
@@ -59,6 +59,7 @@ El orden que los reemplaza está en [roadmap.md](roadmap.md): PostgreSQL ya guar
 | [architecture.md](architecture.md) | Atajo, API y PostgreSQL |
 | [roadmap.md](roadmap.md) | Qué está hecho y qué sprint sigue |
 | [decisions/ADR-0003-captura-directa.md](decisions/ADR-0003-captura-directa.md) | Por qué la captura ya no pasa por Notion |
+| [decisions/ADR-0005-atajo-a-la-api.md](decisions/ADR-0005-atajo-a-la-api.md) | El sprint siguiente: el atajo escribe en la API |
 | [domain/data-model.md](domain/data-model.md) | Forma de las cuatro bases del hub actual |
 | [domain/notion-ids.md](domain/notion-ids.md) | Ids de ese hub |
 | [capture-iphone/](capture-iphone/shortcuts.md) | Cómo capturan hoy los atajos, todavía contra Notion |

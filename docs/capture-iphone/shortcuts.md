@@ -1,6 +1,6 @@
 # Guía: crear los atajos en el iPhone
 
-Referencia de cómo los atajos escriben hoy en Notion. Los ids canónicos, si esta guía y Notion discrepan, están en [../domain/notion-ids.md](../domain/notion-ids.md). El plan siguiente apunta el atajo a la API: [../decisions/ADR-0003-captura-directa.md](../decisions/ADR-0003-captura-directa.md). Esta guía no es ese plan.
+Referencia de cómo los atajos escriben hoy en Notion. Los ids canónicos, si esta guía y Notion discrepan, están en [../domain/notion-ids.md](../domain/notion-ids.md). El sprint siguiente los apunta a la API: [../decisions/ADR-0005-atajo-a-la-api.md](../decisions/ADR-0005-atajo-a-la-api.md). Esta guía no es ese plan.
 
 Haz esto **en el iPhone**, app **Atajos**. No uses el formulario de Notion.
 

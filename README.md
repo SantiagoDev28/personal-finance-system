@@ -2,7 +2,7 @@
 
 Registro de ingresos y gastos en PostgreSQL. NestJS valida cada movimiento, lo guarda, lo lista, lo edita, lo borra y calcula ingresos, gastos y saldo. El saldo no es una columna: sale de las filas. Al reiniciar el servidor, los movimientos siguen.
 
-La moneda es COP y el monto se guarda como un peso entero positivo. El tipo dice si suma o resta. La decisión está en [docs/decisions/ADR-0001-dinero-moneda-y-fecha.md](docs/decisions/ADR-0001-dinero-moneda-y-fecha.md). El camino siguiente, atajo → API → PostgreSQL, está en [docs/decisions/ADR-0003-captura-directa.md](docs/decisions/ADR-0003-captura-directa.md).
+La moneda es COP y el monto se guarda como un peso entero positivo. El tipo dice si suma o resta. La decisión está en [docs/decisions/ADR-0001-dinero-moneda-y-fecha.md](docs/decisions/ADR-0001-dinero-moneda-y-fecha.md). El sprint siguiente apunta el atajo del iPhone a esta API, como dice [docs/decisions/ADR-0005-atajo-a-la-api.md](docs/decisions/ADR-0005-atajo-a-la-api.md).
 
 ## Instalación
 

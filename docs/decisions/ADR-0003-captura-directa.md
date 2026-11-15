@@ -51,4 +51,4 @@ El orden de los sprints siguientes es el de ese dibujo, de abajo hacia arriba, p
 
 ## Seguimiento
 
-Noviembre 2026. El paso 1 ya está: crear, editar, borrar, filtrar y el saldo persisten en PostgreSQL, y el saldo sigue saliendo de las filas. La tabla y sus restricciones están en `src/database/migrations`. Siguen el paso 2, el JSON del atajo, y el paso 3, apuntar el atajo.
+Noviembre 2026. El paso 1 ya está: crear, editar, borrar, filtrar y el saldo persisten en PostgreSQL, y el saldo sigue saliendo de las filas. La tabla y sus restricciones están en `src/database/migrations`. El orden de los pasos 2 y 3 lo sustituye [ADR 0005](ADR-0005-atajo-a-la-api.md): el sprint siguiente apunta el atajo a la API, y el JSON es el de ese formulario.
