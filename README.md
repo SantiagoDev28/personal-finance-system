@@ -1,6 +1,6 @@
 # Finanzas personales
 
-Registro de ingresos y gastos en memoria. NestJS valida cada movimiento, lo guarda, lo lista, lo edita, lo borra y calcula ingresos, gastos y saldo. El arranque exige un PostgreSQL local, pero las filas siguen en memoria: al reiniciar el servidor la lista vuelve a quedar vacía.
+Registro de ingresos y gastos en PostgreSQL. NestJS valida cada movimiento, lo guarda, lo lista, lo edita, lo borra y calcula ingresos, gastos y saldo. El saldo no es una columna: sale de las filas. Al reiniciar el servidor, los movimientos siguen.
 
 La moneda es COP y el monto se guarda como un peso entero positivo. El tipo dice si suma o resta. La decisión está en [docs/decisions/ADR-0001-dinero-moneda-y-fecha.md](docs/decisions/ADR-0001-dinero-moneda-y-fecha.md). El camino siguiente, atajo → API → PostgreSQL, está en [docs/decisions/ADR-0003-captura-directa.md](docs/decisions/ADR-0003-captura-directa.md).
 
@@ -16,7 +16,15 @@ pnpm install
 pnpm test
 ```
 
-Jest corre las pruebas del dominio y del servicio en memoria. No hace falta levantar el servidor ni una base de datos.
+Jest corre las pruebas del dominio y del servicio en memoria. No abre PostgreSQL.
+
+Los flujos de alta, edición, borrado, filtro, saldo y reinicio corren en otra base, `personal_finance_test`:
+
+```bash
+pnpm test:db
+```
+
+Ese comando crea la base de prueba si no existe, aplica el esquema y el catálogo, y no escribe en `personal_finance`. PostgreSQL tiene que estar en marcha y el `.env` tiene que poder conectar.
 
 ## Lint y formato
 
@@ -51,6 +59,13 @@ En PowerShell:
 Copy-Item .env.example .env
 ```
 
+4. Aplica el esquema y el catálogo. El `id` del movimiento es el texto que envía el API. Si la tabla se creó antes con `id` uuid, este script lo deja en texto. Volver a ejecutarlo no duplica las categorías.
+
+```bash
+psql -h localhost -p 5432 -U finance -d personal_finance -f src/database/schema.sql
+psql -h localhost -p 5432 -U finance -d personal_finance -f src/database/seeds/data.psql
+```
+
 ## Arranque
 
 ```bash
@@ -59,7 +74,7 @@ pnpm run start:dev
 
 Sin `.env`, o con `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USER`, `DATABASE_PASSWORD` o `DATABASE_NAME` vacíos, el proceso escribe qué falta y termina. No abre el puerto. Si las variables están y PostgreSQL rechaza la conexión, el proceso también termina y muestra el error.
 
-Con la base creada y el `.env` presente, el servidor queda en [http://localhost:3000](http://localhost:3000). Los movimientos de esa sesión siguen en memoria.
+Con la base creada y el `.env` presente, el servidor queda en [http://localhost:3000](http://localhost:3000). Un movimiento creado sigue en la lista después de reiniciar.
 
 ## Probar un movimiento y el saldo
 
