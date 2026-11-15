@@ -1,82 +1,71 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Transaction } from '../../domain/entities/transaction.entity';
-import { TransactionType } from '../../domain/enums/transaction.enum';
 import { TransactionRepository } from '../../domain/repositories/transaction.repository';
-import { TransactionFilter } from '../../domain/repositories/transaction-filter';
+import {
+  TransactionFilter,
+  filterDateBounds,
+} from '../../domain/repositories/transaction-filter';
 
 export class TransactionMemory implements TransactionRepository {
   private transactions: Transaction[] = [];
 
-  save(newTransaction: Transaction): Transaction {
-    if (this.transactions.find((transaction) => transaction.id === newTransaction.id)) {
-      throw new ConflictException(`Transaction with id ${newTransaction.id} already exists`);
+  save(newTransaction: Transaction): Promise<Transaction> {
+    if (
+      this.transactions.find(
+        (transaction) => transaction.id === newTransaction.id,
+      )
+    ) {
+      throw new ConflictException(
+        `Transaction with id ${newTransaction.id} already exists`,
+      );
     }
     this.transactions.push(newTransaction);
-    return newTransaction;
+    return Promise.resolve(newTransaction);
   }
-  update(updatedTransaction: Transaction): Transaction {
+
+  update(updatedTransaction: Transaction): Promise<Transaction> {
     const index = this.transactions.findIndex(
       (transaction) => transaction.id === updatedTransaction.id,
-    )
+    );
 
     if (index === -1) {
       throw new NotFoundException(
-        `Transaction with id ${updatedTransaction.id} not found`
-      )
+        `Transaction with id ${updatedTransaction.id} not found`,
+      );
     }
 
     this.transactions[index] = updatedTransaction;
+    return Promise.resolve(updatedTransaction);
+  }
 
-    return updatedTransaction;
+  findAll(): Promise<Transaction[]> {
+    return Promise.resolve(this.sorted(this.transactions));
   }
-  findAll(): Transaction[] {
-    return this.transactions;
-  }
-  findById(id: string): Transaction {
-    const transaction = this.transactions.find(
-      (transaction) => transaction.id === id,
-    );
+
+  findById(id: string): Promise<Transaction> {
+    const transaction = this.transactions.find((item) => item.id === id);
     if (!transaction) {
       throw new NotFoundException(`Transaction with id ${id} not found`);
     }
-    return transaction;
+    return Promise.resolve(transaction);
   }
 
-  findByFilter(filter: TransactionFilter): Transaction[] {
-    return this.transactions.filter((transaction) => {
+  findByFilter(filter: TransactionFilter): Promise<Transaction[]> {
+    const { start, end } = filterDateBounds(filter);
+    const matches = this.transactions.filter((transaction) => {
       const matchesType = !filter.type || transaction.type === filter.type;
-      const matchesCategory = !filter.category || transaction.category === filter.category;
-      const matchesStartDate = !filter.startDate || transaction.date >= new Date(filter.startDate);
-
-      const endDate = filter.endDate ? new Date(filter.endDate) : null;
-      if (endDate && /^\d{4}-\d{2}-\d{2}$/.test(filter.endDate!)) {
-        endDate.setUTCHours(23, 59, 59, 999);
-      }
-
-      const matchesEndDate = !endDate || transaction.date <= endDate;
-
-      return matchesType && matchesCategory && matchesStartDate && matchesEndDate;
+      const matchesCategory =
+        !filter.category || transaction.category === filter.category;
+      const matchesStartDate = !start || transaction.date >= start;
+      const matchesEndDate = !end || transaction.date <= end;
+      return (
+        matchesType && matchesCategory && matchesStartDate && matchesEndDate
+      );
     });
+    return Promise.resolve(this.sorted(matches));
   }
 
-  /*calculateResume(transactions: Transaction[]) {
-    const income = transactions
-      .filter((transaction) => transaction.type === TransactionType.INCOME)
-      .reduce((total, transaction) => total + transaction.amount, 0);
-
-    const expense = transactions
-      .filter((transaction) => transaction.type === TransactionType.EXPENSE)
-      .reduce((total, transaction) => total + transaction.amount, 0);
-
-    return {
-      income,
-      expense,
-      balance: income - expense,
-    };
-  }
-  */
-
-  delete(id: string): string {
+  delete(id: string): Promise<string> {
     const index = this.transactions.findIndex(
       (transaction) => transaction.id === id,
     );
@@ -84,6 +73,19 @@ export class TransactionMemory implements TransactionRepository {
       throw new NotFoundException(`Transaction with id ${id} not found`);
     }
     this.transactions.splice(index, 1);
-    return `Successfully deleted transaction with id ${id}`;
+    return Promise.resolve(`Successfully deleted transaction with id ${id}`);
+  }
+
+  private sorted(transactions: Transaction[]): Transaction[] {
+    return [...transactions].sort((left, right) => {
+      const byDate = left.date.getTime() - right.date.getTime();
+      if (byDate !== 0) {
+        return byDate;
+      }
+      if (left.id === right.id) {
+        return 0;
+      }
+      return left.id < right.id ? -1 : 1;
+    });
   }
 }
