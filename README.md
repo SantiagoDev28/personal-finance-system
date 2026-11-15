@@ -24,7 +24,7 @@ Los flujos de alta, edición, borrado, filtro, saldo y reinicio corren en otra b
 pnpm test:db
 ```
 
-Ese comando crea la base de prueba si no existe, aplica el esquema y el catálogo, y no escribe en `personal_finance`. PostgreSQL tiene que estar en marcha y el `.env` tiene que poder conectar.
+Ese comando crea la base de prueba si no existe, aplica las migraciones y no escribe en `personal_finance`. PostgreSQL tiene que estar en marcha y el `.env` tiene que poder conectar.
 
 ## Lint y formato
 
@@ -59,11 +59,10 @@ En PowerShell:
 Copy-Item .env.example .env
 ```
 
-4. Aplica el esquema y el catálogo. El `id` del movimiento es el texto que envía el API. Si la tabla se creó antes con `id` uuid, este script lo deja en texto. Volver a ejecutarlo no duplica las categorías.
+4. Aplica las migraciones. Crean la tabla del movimiento en una base vacía: `id` único, monto entero mayor que 0, tipo `income` o `expense`, y un índice por fecha. Volver a ejecutarlas no duplica la tabla.
 
 ```bash
-psql -h localhost -p 5432 -U finance -d personal_finance -f src/database/schema.sql
-psql -h localhost -p 5432 -U finance -d personal_finance -f src/database/seeds/data.psql
+pnpm db:migrate
 ```
 
 ## Arranque

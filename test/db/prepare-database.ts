@@ -1,7 +1,6 @@
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
 import { Pool } from 'pg';
 
+import { applyMigrations } from '../../src/database/apply-migrations';
 import { readDatabaseConfig } from '../../src/database/database-config';
 
 export const TEST_DATABASE_NAME = 'personal_finance_test';
@@ -44,15 +43,9 @@ export async function openTestDatabase(): Promise<Pool> {
     connectionTimeoutMillis: 3000,
   });
 
-  await pool.query(
-    readFileSync(resolve(process.cwd(), 'src/database/schema.sql'), 'utf8'),
-  );
-  await pool.query(
-    readFileSync(
-      resolve(process.cwd(), 'src/database/seeds/data.psql'),
-      'utf8',
-    ),
-  );
+  await pool.query('DROP SCHEMA public CASCADE');
+  await pool.query('CREATE SCHEMA public');
+  await applyMigrations(pool);
 
   const current = await pool.query<{ name: string }>(
     'SELECT current_database() AS name',

@@ -1,6 +1,6 @@
 # Sistema de finanzas personales
 
-El servidor NestJS ya registra movimientos en memoria: alta, lista, consulta, edición, borrado, filtros y saldo. Al reiniciar, la lista queda vacía.
+El servidor NestJS guarda el movimiento en PostgreSQL: alta, lista, consulta, edición, borrado, filtros y saldo. Al reiniciar, las filas siguen. El saldo se calcula; no es una columna.
 
 Hoy los atajos del iPhone todavía escriben en Notion. El camino que sigue es otro: el formulario del atajo hace `POST` a la API y PostgreSQL guarda el movimiento. Esa decisión está en [docs/decisions/ADR-0003-captura-directa.md](docs/decisions/ADR-0003-captura-directa.md). El alcance está en [docs/context.md](docs/context.md).
 

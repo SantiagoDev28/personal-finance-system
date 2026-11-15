@@ -7,9 +7,9 @@ alwaysApply: true
 
 La decisión vive en `docs/context.md` y en `docs/decisions/ADR-0003-captura-directa.md`.
 
-- El servidor NestJS ya está en este repositorio. Registra movimientos en memoria: alta, lista, consulta, edición, borrado, filtros y saldo.
-- El camino siguiente es: atajo del iPhone → HTTP POST JSON → `POST /transactions` → PostgreSQL. Notion no es la fuente que la aplicación lee.
+- El servidor NestJS guarda el movimiento en PostgreSQL: alta, lista, consulta, edición, borrado, filtros y saldo. El saldo se calcula con las filas.
+- La tabla sale de `src/database/migrations`. El monto es un entero mayor que 0. El tipo solo admite `income` o `expense`. No hay columnas de Notion ni `page_id`.
+- El camino siguiente es ajustar el JSON de `POST /transactions` al formulario del atajo, y después apuntar el atajo a la API. Notion no es la fuente que la aplicación lee.
 - Moneda COP. Valor positivo. El tipo dice si es ingreso o gasto. Plan Financiero queda fuera.
 - `docs/capture-iphone/` describe los atajos que todavía escriben en Notion. Esa carpeta no es el plan de implementación.
 - `docs/domain/` describe el hub de Notion que existe hoy, no el contrato del POST.
-- Los sprints siguientes, en orden: persistir en PostgreSQL, ajustar el JSON al formulario del atajo, apuntar el atajo a la API.

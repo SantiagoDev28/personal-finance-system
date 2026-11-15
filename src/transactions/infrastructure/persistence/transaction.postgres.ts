@@ -21,16 +21,10 @@ const TRANSACTION_SELECT = `
     t.amount,
     t.description,
     t.date,
-    c.code AS category,
-    m.code AS method,
-    ty.code AS type
+    t.category,
+    t.method,
+    t.type
   FROM transactions t
-  INNER JOIN transaction_categories c
-    ON t.category_id = c.id
-  INNER JOIN transaction_methods m
-    ON t.method_id = m.id
-  INNER JOIN transaction_types ty
-    ON t.type_id = ty.id
 `;
 
 @Injectable()
@@ -45,17 +39,9 @@ export class TransactionPostgres implements TransactionRepository {
       await this.pool.query(
         `
         INSERT INTO transactions (
-          id, amount, description, date, category_id, method_id, type_id
+          id, amount, description, date, category, method, type
         )
-        VALUES (
-          $1,
-          $2,
-          $3,
-          $4,
-          (SELECT id FROM transaction_categories WHERE code = $5),
-          (SELECT id FROM transaction_methods WHERE code = $6),
-          (SELECT id FROM transaction_types WHERE code = $7)
-        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         `,
         this.bound(transaction),
       );
@@ -78,9 +64,9 @@ export class TransactionPostgres implements TransactionRepository {
         amount = $2,
         description = $3,
         date = $4,
-        category_id = (SELECT id FROM transaction_categories WHERE code = $5),
-        method_id = (SELECT id FROM transaction_methods WHERE code = $6),
-        type_id = (SELECT id FROM transaction_types WHERE code = $7)
+        category = $5,
+        method = $6,
+        type = $7
       WHERE id = $1
       `,
       this.bound(transaction),
@@ -119,11 +105,11 @@ export class TransactionPostgres implements TransactionRepository {
     const values: unknown[] = [];
     if (filter.type) {
       values.push(filter.type);
-      clauses.push(`ty.code = $${values.length}`);
+      clauses.push(`t.type = $${values.length}`);
     }
     if (filter.category) {
       values.push(filter.category);
-      clauses.push(`c.code = $${values.length}`);
+      clauses.push(`t.category = $${values.length}`);
     }
     if (start) {
       values.push(start);

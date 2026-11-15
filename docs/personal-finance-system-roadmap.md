@@ -161,9 +161,9 @@ decisiones de datos.
 -   Se prueban los flujos principales contra una base de datos de
     pruebas.
 
-**Decisión pendiente:** escoger una única herramienta de acceso a datos
-cuando esta versión lo requiera (por ejemplo, Prisma o SQL explícito).
-No introducir un ORM y un query builder sin una necesidad clara.
+**Decisión:** SQL explícito con `pg`, sin ORM. Está en
+`docs/decisions/ADR-0004-acceso-postgresql.md`. La tabla del movimiento
+se reconstruye con `src/database/migrations`.
 
 ## V0.4 --- API REST
 

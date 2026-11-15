@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node"
+  },
+  "include": ["src/database/migrate.ts", "src/database/apply-migrations.ts", "src/database/database-config.ts"]
+}
