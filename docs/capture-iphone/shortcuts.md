@@ -1,42 +1,48 @@
 # Guía: crear los atajos en el iPhone
 
-Referencia de cómo los atajos escriben hoy en Notion. Los ids canónicos, si esta guía y Notion discrepan, están en [../domain/notion-ids.md](../domain/notion-ids.md). El sprint siguiente los apunta a la API: [../decisions/ADR-0005-atajo-a-la-api.md](../decisions/ADR-0005-atajo-a-la-api.md). Esta guía no es ese plan.
+`💸 Nuevo gasto` y `💰 Nuevo ingreso` preguntan el monto, la categoría y la cuenta, arman un JSON y hacen `POST` a la API. PostgreSQL guarda el movimiento. La decisión está en [../decisions/ADR-0005-atajo-a-la-api.md](../decisions/ADR-0005-atajo-a-la-api.md). El cuerpo es el de [el README](../../README.md#probar-un-movimiento-y-el-saldo).
 
-Haz esto **en el iPhone**, app **Atajos**. No uses el formulario de Notion.
+Haz esto **en el iPhone**, app **Atajos**. El atajo no llama a `api.notion.com` y no lleva token, `database_id` ni `page_id`.
 
-Vas a crear tres atajos:
+`📊 Ver finanzas` y el widget de Notion siguen abriendo el hub. No registran el movimiento. Esa parte queda al final y no cambia en esta guía.
 
-1. `💸 Nuevo gasto` — el importante (esta guía)
-2. `💰 Nuevo ingreso` — duplicado del primero
-3. `📊 Ver finanzas` — una sola acción
+Vas a dejar así dos atajos:
 
-Al final los añades al **Centro de control** (igual que el de gasto) y, si quieres números a la vista, un widget Notion en la pantalla de inicio.
+1. `💸 Nuevo gasto` — envía `type` `expense`
+2. `💰 Nuevo ingreso` — duplicado del primero, con `type` `income`
+
+Al final los añades al **Centro de control**.
 
 ---
 
-## Antes: conectar Notion (5 minutos, una sola vez)
+## Antes: el servidor al alcance del iPhone
 
-Sin esto el atajo responde 404.
+El teléfono no puede usar `localhost`: esa palabra, en el iPhone, es el propio teléfono. El POST va a la IP de este equipo, puerto `3000`.
 
-### 1. Crear la integración
+1. En el equipo, con PostgreSQL en marcha, arranca la API:
 
-1. En Safari del iPhone o en el Mac abre [https://www.notion.so/my-integrations](https://www.notion.so/my-integrations).
-2. **Nueva integración**.
-3. Nombre: `Finanzas iPhone`.
-4. Tipo: **Interna**.
-5. Asociarla a tu workspace.
-6. **Guardar** y **copiar el token** (`secret_…` o `ntn_…`).
-7. Pégalo en Notas (o en el llavero). No lo subas a GitHub ni lo pegues en un chat.
+```bash
+pnpm run start:dev
+```
 
-### 2. Darle permiso a las bases
+2. El iPhone y el equipo tienen que estar en la misma red.
+3. En PowerShell, anota la IPv4 de esa red:
 
-En Notion, en cada una de estas tres páginas toca **···** (arriba a la derecha) → **Conexiones** / **Connections** → **Conectar a** → `Finanzas iPhone`:
+```powershell
+ipconfig
+```
 
-- [Mayores gastos](https://app.notion.com/p/c1642803748248acba245c31686ff821) (es la base de movimientos)
-- [Categorías](https://app.notion.com/p/093b4198a6a341a29dbcfe06c6c90762)
-- [Cuentas](https://app.notion.com/p/a99099771ecb4c6b897da26f0e25dfe4)
+4. Arma la URL. Si la IPv4 fuera `192.168.1.20`, queda:
 
-Si no las conectas, el atajo no puede escribir ni enlazar categoría/cuenta.
+```text
+http://192.168.1.20:3000/transactions
+```
+
+Usa la IPv4 que salió en tu equipo. No pegues el ejemplo si no es la tuya.
+
+5. La primera vez, iOS pregunta si el atajo puede conectarse a esa dirección. Toca **Permitir**. Si no llega, el firewall del equipo tiene que dejar entrar el puerto `3000`.
+
+No hace falta integración de Notion ni token para estos dos atajos.
 
 ---
 
@@ -44,36 +50,34 @@ Si no las conectas, el atajo no puede escribir ni enlazar categoría/cuenta.
 
 ### Abrir un atajo vacío
 
-1. Abre la app **Atajos**.
-2. Toca **+** (arriba a la derecha).
-3. Toca el nombre **Atajo nuevo** (arriba) y cámbialo a `💸 Nuevo gasto`.
-4. Abajo verás **Buscar apps y acciones**. Ahí vas a buscar cada pieza.
+Si ya tienes el atajo que escribía en Notion, entra con el lápiz y sustituye el JSON, la URL y la notificación. Borra el token, los encabezados `Authorization` y `Notion-Version`, y las variables `CategoriaID` y `CuentaID`. El menú se queda; lo que cambia es que el texto elegido viaja tal cual.
 
-A partir de aquí, cada bloque es una **acción** que se apila de arriba a abajo.
+Si partes de cero:
+
+1. Abre la app **Atajos**.
+2. Toca **+**.
+3. Toca el nombre **Atajo nuevo** y cámbialo a `💸 Nuevo gasto`.
+4. Abajo, **Buscar apps y acciones**. Cada bloque se apila de arriba a abajo.
 
 ---
 
 ### Acción 1 — Preguntar el valor
 
-1. Busca **Pedir entrada** y tócala.
-2. Toca **Pregunta** y escribe: `¿Cuánto?`
-3. Toca **Tipo de entrada** (o el valor por defecto “Texto”) y elige **Número**.
-4. Apaga decimales si no los usas.
-5. Busca **Definir variable**.
-6. Nombre de la variable: `Valor`.
-7. En **Valor** (el campo de la acción), toca y elige la burbuja mágica **Entrada proporcionada** (el número que acabas de pedir).
+1. Busca **Pedir entrada**.
+2. Pregunta: `¿Cuánto?`
+3. Tipo de entrada: **Número**.
+4. Apaga los decimales.
+5. **Definir variable**. Nombre: `Valor`. Valor: la burbuja **Entrada proporcionada**.
 
-Listo: ya tienes el monto guardado.
+Un cero, un negativo o un decimal pueden teclearse igual. La API los rechaza. El atajo no debe decir que quedaron registrados: eso se arma en la última acción.
 
 ---
 
 ### Acción 2 — Elegir categoría
 
-1. Busca **Elegir del menú** y tócala.
-2. En **Indicación** escribe: `Categoría`.
-3. Toca **Uno** y renómbralo a `Alimentación`.
-4. Toca **Dos** y renómbralo a `Transporte`.
-5. Toca **Añadir nuevo elemento** hasta tener estas 10 opciones, **con exactamente este texto**:
+1. Busca **Elegir del menú**.
+2. Indicación: `Categoría`.
+3. Deja estas 10 opciones, **con exactamente este texto**:
 
    - Alimentación
    - Transporte
@@ -86,339 +90,241 @@ Listo: ya tienes el monto guardado.
    - Suscripciones
    - Otros
 
-6. Dentro de **cada** opción del menú (el hueco que se abre debajo del nombre) añade **Definir variable**:
-   - Nombre: `CategoriaID` (el mismo nombre en todas).
-   - Valor: pega el ID de esa categoría (tabla de abajo).
+4. No pongas nada dentro de cada opción. No hay id de Notion.
+5. **Fuera** del menú, **Definir variable**:
+   - Nombre: `Categoria`
+   - Valor: la burbuja **Elegir del menú**
 
-| Opción del menú | Pega esto en `CategoriaID` |
-| --- | --- |
-| Alimentación | `3cff454b563081e39ab4d5c5aaa68b06` |
-| Transporte | `3cff454b563081d8aab8f66e0426d6f5` |
-| Hogar | `3cff454b563081108616dacffa81cd01` |
-| Tecnología | `3cff454b56308153bd41dc4cc1736658` |
-| Educación | `3cff454b563081f1a7ddc6b888961ba3` |
-| Deporte | `3cff454b563081db96acdd7a65cc7cac` |
-| Ropa | `3cff454b56308182895de5e19800f8d2` |
-| Entretenimiento | `3cff454b56308182b073ee4d1cabb471` |
-| Suscripciones | `3cff454b563081a7bc95f616b0bb1300` |
-| Otros | `3cff454b5630812db018d96af021dc0a` |
-
-7. **Fuera** del menú (después de que termine el bloque, no dentro de una opción), añade otra **Definir variable**:
-   - Nombre: `Concepto`
-   - Valor: toca y elige la burbuja **Elegir del menú** (el nombre que tocaste: “Alimentación”, etc.).
-
-Así el concepto se rellena solo con la categoría. No preguntas nada extra en la calle.
+Ese texto es la categoría que se guarda. Si eliges Alimentación, el cuerpo lleva `Alimentación`.
 
 ---
 
 ### Acción 3 — Elegir cuenta
 
-Igual que la categoría.
-
 1. **Elegir del menú**.
 2. Indicación: `Cuenta`.
-3. Opciones: `Efectivo`, `Nequi`, `Bancolombia`, `Daviplata`, `Tarjeta crédito`.
-4. En cada una, **Definir variable** `CuentaID` con este valor:
+3. Opciones, con este texto:
 
-| Opción del menú | Pega esto en `CuentaID` |
-| --- | --- |
-| Efectivo | `3cff454b563081889c8bdf74ffc31235` |
-| Transferencia | `3cff454b5630812caee9f2aa97341659` |
-| Tarjeta crédito | `3cff454b563081388987d52aff5b75ad` |
+   - Efectivo
+   - Nequi
+   - Nu
+   - Daviplata
+   - Tarjeta crédito
+
+4. Fuera del menú, **Definir variable** `Cuenta` = la burbuja **Elegir del menú**.
+
+`Transferencia` no va en este menú. La API no la acepta.
 
 ---
 
 ### Acción 4 — Fecha de hoy
 
-1. Busca **Fecha**. Deja **Fecha actual**.
+1. Busca **Fecha**. Déjala en **Fecha actual**.
 2. Busca **Formatear fecha**.
-3. **Fecha**: la burbuja de la acción Fecha.
-4. **Formato**: **Personalizado**.
-5. En el campo de formato escribe exactamente: `yyyy-MM-dd`
+3. Fecha: la burbuja de la acción Fecha.
+4. Formato: **Personalizado**.
+5. Escribe exactamente: `yyyy-MM-dd`
 6. **Definir variable** `FechaHoy` = el resultado de Formatear fecha.
 
 ---
 
-### Acción 5 — El JSON (el mensaje que se envía a Notion)
+### Acción 5 — El JSON
 
 1. Busca **Texto**.
-2. Pega esto **tal cual**. Luego sustituyes las 5 palabras en MAYÚSCULAS por burbujas (paso 3):
+2. Pega esto y luego cambia las palabras en mayúsculas por burbujas:
 
 ```json
 {
-  "parent": {
-    "database_id": "c1642803748248acba245c31686ff821"
-  },
-  "properties": {
-    "Concepto": {
-      "title": [{ "text": { "content": "CONCEPTO" } }]
-    },
-    "Valor": { "number": VALOR },
-    "Tipo": { "select": { "name": "Gasto" } },
-    "Fecha": { "date": { "start": "FECHAHOY" } },
-    "Categoría": {
-      "relation": [{ "id": "CATEGORIAID" }]
-    },
-    "Cuenta": {
-      "relation": [{ "id": "CUENTAID" }]
-    }
-  }
+  "amount": VALOR,
+  "category": "CATEGORIA",
+  "account": "CUENTA",
+  "date": "FECHAHOY",
+  "type": "expense"
 }
 ```
 
-3. En ese texto, borra cada palabra en mayúsculas y toca **Variable** (o el botón de variables arriba del teclado) para insertar:
-
 | En el texto borra | Inserta la variable |
 | --- | --- |
-| `CONCEPTO` | `Concepto` |
 | `VALOR` | `Valor` |
+| `CATEGORIA` | `Categoria` |
+| `CUENTA` | `Cuenta` |
 | `FECHAHOY` | `FechaHoy` |
-| `CATEGORIAID` | `CategoriaID` |
-| `CUENTAID` | `CuentaID` |
 
-**Importante:** `VALOR` va **sin comillas**. Los IDs y el concepto sí van entre comillas, como en el ejemplo.
+`type` se queda escrito: `expense`. No se pregunta. Nuevo gasto es un gasto.
 
-Queda algo así (las burbujas se ven ovaladas en Atajos, no como texto plano):
+`VALOR` va **sin comillas**. La categoría, la cuenta y la fecha sí van entre comillas.
 
-`"number": Valor`  ← correcto  
-`"number": "Valor"`  ← incorrecto, Notion lo rechaza
+```text
+"amount": Valor          ← correcto
+"amount": "Valor"        ← incorrecto
+```
+
+Un gasto de 15000 en Alimentación y Efectivo, con fecha de hoy `2026-11-15`, sale así:
+
+```json
+{
+  "amount": 15000,
+  "category": "Alimentación",
+  "account": "Efectivo",
+  "date": "2026-11-15",
+  "type": "expense"
+}
+```
 
 ---
 
-### Acción 6 — Enviar a Notion
+### Acción 6 — Enviar a la API
 
-1. Busca **Obtener el contenido de la URL** (a veces aparece como **Obtener contenido de URL**).
-2. En **URL** pega: `https://api.notion.com/v1/pages`
-3. Toca **Mostrar más** si está plegado.
-4. **Método**: `POST`.
-5. **Encabezados**: toca **Añadir encabezado** tres veces:
+1. Busca **Obtener el contenido de la URL**.
+2. URL: la de tu equipo, terminada en `/transactions`. Ejemplo de forma, no de dirección:
+
+```text
+http://192.168.1.20:3000/transactions
+```
+
+3. **Método**: `POST`.
+4. Un solo encabezado:
 
 | Encabezado | Valor |
 | --- | --- |
-| `Authorization` | `Bearer ` y pegado **justo después** (con un espacio) tu token |
-| `Notion-Version` | `2022-06-28` |
 | `Content-Type` | `application/json` |
 
-Ejemplo del primero: `Bearer secret_abc123…` (todo en un solo campo).
+No añadas `Authorization` ni `Notion-Version`. No pegues un token.
 
-6. **Cuerpo de la solicitud**:
-   - Si ves opciones: elige **Archivo**.
-   - Como archivo, elige la burbuja de la acción **Texto** (el JSON).
-   - Si tu iOS pide **JSON** en vez de Archivo: elige JSON y, si te deja pegar texto crudo, usa el mismo Texto. Si solo te deja un diccionario anidado, vuelve a **Archivo**.
+5. **Cuerpo de la solicitud**: **Archivo**, y elige la burbuja de la acción **Texto**. Si iOS pide **JSON** en vez de Archivo, usa el mismo Texto.
 
 ---
 
-### Acción 7 — Confirmar
+### Acción 7 — Confirmar solo si quedó creado
 
-1. Busca **Mostrar notificación**.
-2. Título: `Finanzas`.
-3. Cuerpo: `Gasto registrado`.
+La notificación de éxito va **dentro** de un si. Si el monto es inválido, la API responde 400, no devuelve `id` y el atajo no dice que quedó registrado.
+
+1. Busca **Obtener valor del diccionario**.
+2. Clave: `id`.
+3. Diccionario: el contenido de la URL. Si Atajos te deja el resultado como texto, antes añade **Obtener diccionario de la entrada** con ese contenido.
+4. Busca **Si**.
+5. Condición: el valor `id` **tiene algún valor**.
+6. Dentro del si, **Mostrar notificación**. Título: `Finanzas`. Cuerpo: `Gasto registrado`.
+7. En **Si no**, no escribas «registrado». Puedes poner `No se registró` para ver el rechazo.
+
+Si la acción de la URL se detiene al recibir un 400, el si no se ejecuta. Tampoco aparece «Gasto registrado».
 
 ---
 
-### Cómo queda el atajo (de arriba a abajo)
+### Cómo queda el atajo
 
 ```text
 Pedir entrada (número) ¿Cuánto?
 Definir variable Valor
-Elegir del menú Categoría  →  CategoriaID + Concepto
-Elegir del menú Cuenta     →  CuentaID
+Elegir del menú Categoría  →  variable Categoria
+Elegir del menú Cuenta     →  variable Cuenta
 Fecha actual
 Formatear fecha yyyy-MM-dd
 Definir variable FechaHoy
-Texto (JSON)
-Obtener contenido de URL  POST
-Mostrar notificación
+Texto (JSON, type expense)
+Obtener contenido de URL  POST /transactions
+Si la respuesta trae id
+    Mostrar notificación  Gasto registrado
+Si no
+    Mostrar notificación  No se registró
 ```
 
-Toca **Hecho** (arriba a la derecha).
+Toca **Hecho**.
 
 ---
 
-### Probarlo ahora
+### Probar el gasto
 
-1. En la lista de Atajos, toca **💸 Nuevo gasto** (el play / el recuadro, no el lápiz).
-2. La primera vez iOS pregunta si puede conectarse a `api.notion.com` → **Permitir**.
-3. Escribe `15000` → **Alimentación** → **Nequi**.
-4. Debe salir **Gasto registrado**.
-5. Abre [Mayores gastos](https://app.notion.com/p/c1642803748248acba245c31686ff821): tiene que aparecer un movimiento de $15.000 en Alimentación / Nequi, fecha de hoy.
+1. Deja `pnpm run start:dev` corriendo.
+2. En el iPhone, ejecuta `💸 Nuevo gasto`.
+3. `15000` → **Alimentación** → **Efectivo**.
+4. El banner dice **Gasto registrado** solo si la API creó la fila.
+5. En el equipo:
 
-Si falla, no sigas al widget. Mira la tabla del final.
+```bash
+curl http://localhost:3000/transactions
+curl http://localhost:3000/transactions/resume
+```
+
+Tiene que aparecer el gasto: monto `15000`, categoría `Alimentación`, cuenta `Efectivo`, tipo `expense`. El saldo cuadra con las filas.
+
+6. Para el servidor con Ctrl+C y vuelve a arrancar `pnpm run start:dev`. El mismo `GET /transactions` sigue mostrando el movimiento.
+7. En Notion, la base de movimientos no tiene una página nueva por esta captura.
+8. Ejecuta otra vez el atajo con monto `0`. El banner no dice **Gasto registrado**. Ese cero no aparece en `GET /transactions`.
 
 ---
 
 ## Atajo 2 — `💰 Nuevo ingreso`
 
-Misma receta que el gasto. La forma más segura: **duplicar** `💸 Nuevo gasto` y cambiar solo lo de las tablas de abajo. El token, la URL de la API y el `database_id` no se tocan.
+Duplica el de gasto y cambia el menú, el tipo y el texto del banner.
 
-IDs fijos (igual que en gasto):
+1. Mantén pulsado `💸 Nuevo gasto` → **Duplicar**.
+2. Entra al duplicado y nómbralo `💰 Nuevo ingreso`.
+3. En **Categoría**, borra las 10 opciones de gasto. Deja solo estas, con este texto:
 
-| Qué | ID / valor |
-| --- | --- |
-| Base Mayores gastos (`database_id`) | `c1642803748248acba245c31686ff821` |
-| API | `https://api.notion.com/v1/pages` |
-| `Tipo` en el JSON | `Ingreso` (no `Gasto`) |
+   - Salario
+   - Freelance
+   - Barberia
+   - Otros ingresos
 
-### Paso a paso (duplicando)
-
-1. App **Atajos**.
-2. Mantén pulsado **💸 Nuevo gasto** → **Duplicar**.
-3. Entra al duplicado (lápiz). Arriba, cambia el nombre a `💰 Nuevo ingreso`.
-
-### Qué cambiar en el menú Categoría
-
-Borra las 10 opciones de gasto. Deja **solo estas 3**. En cada una, variable `CategoriaID` (el mismo nombre de variable que ya usas):
-
-| Opción del menú (texto exacto) | Pega esto en `CategoriaID` |
-| --- | --- |
-| Salario | `3cff454b56308183a6e9e982c5150da4` |
-| Freelance | `3cff454b5630813ab6a9ce49e37643b9` |
-| Otros ingresos | `3cff454b5630811f83d7c765a4e495e3` |
-
-La variable `Concepto` (fuera del menú) se queda igual: burbuja **Elegir del menú**. Si eliges Salario, el movimiento se llamará “Salario”.
-
-### Menú Cuenta (mismos IDs que el gasto)
-
-No hace falta cambiarlo si ya te funciona en gasto. Por si lo armas de cero o añadiste/quitaste opciones:
-
-| Opción del menú | Pega esto en `CuentaID` |
-| --- | --- |
-| Efectivo | `3cff454b563081889c8bdf74ffc31235` |
-| Nequi | `3cff454b5630812caee9f2aa97341659` |
-| Transferencia | `3cff454b5630812caee9f2aa97341659` |
-| Bancolombia | `3cff454b563081f3887ce59cfc38b8ea` |
-| Daviplata | `3cff454b563081b19c7aeb28129e2ce0` |
-| Tarjeta crédito | `3cff454b563081388987d52aff5b75ad` |
-
-`Nequi` y `Transferencia` son la **misma** cuenta en Notion (`3cff454b5630812caee9f2aa97341659`). Usa el nombre que ya tienes en el atajo de gasto.
-
-Para un salario suele ser **Bancolombia**. Si esa opción no está en tu menú, **Añadir nuevo elemento** → `Bancolombia` → `CuentaID` = `3cff454b563081f3887ce59cfc38b8ea`.
-
-### Qué cambiar en el JSON
-
-En la acción **Texto**, cambia **solo** esta línea:
+4. La variable `Categoria` sigue siendo la burbuja **Elegir del menú**, fuera del menú.
+5. El menú **Cuenta** no se toca: Efectivo, Nequi, Nu, Daviplata, Tarjeta crédito.
+6. En el JSON, cambia solo el tipo:
 
 ```json
-"Tipo": { "select": { "name": "Gasto" } },
+"type": "income"
 ```
 
-por:
-
-```json
-"Tipo": { "select": { "name": "Ingreso" } },
-```
-
-El resto del JSON es idéntico, con las mismas burbujas `CONCEPTO`, `VALOR`, `FECHAHOY`, `CATEGORIAID`, `CUENTAID`.
-
-Texto completo para copiar si prefieres rehacer la acción Texto:
+El resto del cuerpo sigue con las burbujas `Valor`, `Categoria`, `Cuenta` y `FechaHoy`. `Valor` sin comillas. Texto completo:
 
 ```json
 {
-  "parent": {
-    "database_id": "c1642803748248acba245c31686ff821"
-  },
-  "properties": {
-    "Concepto": {
-      "title": [{ "text": { "content": "CONCEPTO" } }]
-    },
-    "Valor": { "number": VALOR },
-    "Tipo": { "select": { "name": "Ingreso" } },
-    "Fecha": { "date": { "start": "FECHAHOY" } },
-    "Categoría": {
-      "relation": [{ "id": "CATEGORIAID" }]
-    },
-    "Cuenta": {
-      "relation": [{ "id": "CUENTAID" }]
-    }
-  }
+  "amount": VALOR,
+  "category": "CATEGORIA",
+  "account": "CUENTA",
+  "date": "FECHAHOY",
+  "type": "income"
 }
 ```
 
-Sustituye las MAYÚSCULAS por burbujas, igual que en gasto. `VALOR` **sin comillas**.
+7. La URL, el método `POST` y el encabezado `Content-Type` quedan igual. Siguen sin token.
+8. Dentro del si, el cuerpo de la notificación pasa a `Ingreso registrado`. El si no sigue sin decir «registrado».
 
-Encabezados del POST: los mismos (`Authorization`, `Notion-Version` `2022-06-28`, `Content-Type` `application/json`). No copies el token otra vez si al duplicar ya vino.
-
-### Notificación
-
-Cambia el cuerpo a: `Ingreso registrado`.
-
-### Probarlo
+### Probar el ingreso
 
 1. Ejecuta `💰 Nuevo ingreso`.
-2. `2000000` → **Salario** → **Bancolombia** (o la cuenta donde te cae el sueldo).
-3. Banner: **Ingreso registrado**.
-4. En [Mayores gastos](https://app.notion.com/p/c1642803748248acba245c31686ff821) debe salir un movimiento tipo **Ingreso**, $2.000.000, categoría Salario, fecha de hoy.
-5. En el hub [Finanzas](https://app.notion.com/p/3cff454b5630814690fec87bfbd8b82a) el número verde de ingresos debe subir.
+2. `2000000` → **Barberia** → **Nu**.
+3. Banner: **Ingreso registrado**, solo si la respuesta trae `id`.
+4. `GET /transactions` muestra una fila `income` con categoría `Barberia` y cuenta `Nu`.
+5. `GET /transactions/resume` cuadra con las filas, incluido el gasto de antes si sigue ahí.
+6. Notion no recibe una página por este ingreso.
+7. Reinicia el servidor y vuelve a listar: el ingreso sigue.
 
 ### Centro de control
 
-Igual que el de gasto:
-
 1. Ajustes → **Centro de control**.
 2. **Añadir un control** → **Atajo**.
-3. Toca el control nuevo → elige `💰 Nuevo ingreso`.
+3. Asigna `💸 Nuevo gasto` y `💰 Nuevo ingreso`.
 
 ---
 
-## Atajo 3 — `📊 Ver finanzas` (abrir el dashboard)
+## Atajo 3 — `📊 Ver finanzas`
 
-Este **no** usa la API ni el token. Solo abre la página del hub.
+Este atajo no registra movimientos. Sigue abriendo el hub de Notion. No usa `POST /transactions` ni el token.
 
 | Qué | Valor |
 | --- | --- |
 | Nombre del atajo | `📊 Ver finanzas` |
-| ID de la página | `3cff454b5630814690fec87bfbd8b82a` |
-| URL (abre Notion) | `https://www.notion.so/3cff454b5630814690fec87bfbd8b82a` |
-| URL alternativa (fuerza la app) | `notion://www.notion.so/3cff454b5630814690fec87bfbd8b82a` |
-
-### Paso a paso
+| URL | `https://www.notion.so/3cff454b5630814690fec87bfbd8b82a` |
+| URL alternativa | `notion://www.notion.so/3cff454b5630814690fec87bfbd8b82a` |
 
 1. App **Atajos** → **+**.
 2. Nombre: `📊 Ver finanzas`.
-3. Busca **Abrir URL** (no “Obtener el contenido de la URL”; esa es la del POST).
-4. Pega:
-
-```text
-https://www.notion.so/3cff454b5630814690fec87bfbd8b82a
-```
-
-Si Safari se queda en medio, borra esa URL y usa:
-
-```text
-notion://www.notion.so/3cff454b5630814690fec87bfbd8b82a
-```
-
+3. **Abrir URL** (no «Obtener el contenido de la URL»).
+4. Pega la URL de la tabla. Si Safari se queda en medio, usa la que empieza por `notion://`.
 5. **Hecho**.
-6. Ejecuta el atajo: tiene que abrir el hub **Finanzas** (ingresos, gastos, donut, mayores gastos, presupuestos).
 
-Opcional, una notificación no hace falta: la “confirmación” es ver la página.
-
-### Centro de control
-
-1. Ajustes → **Centro de control**.
-2. **Añadir un control** → **Atajo**.
-3. Asígnale `📊 Ver finanzas`.
-
-En el Centro de control **no hay vista previa con números**. Un control de Atajos es un botón: lo tocas y entra al dashboard. Eso es lo que iOS permite ahí.
-
-### Vista previa de verdad (números en la pantalla, sin abrir Notion)
-
-Eso no va en el Centro de control. Va en la **pantalla de inicio**, widget nativo de Notion:
-
-1. En Notion, abre [Finanzas](https://www.notion.so/3cff454b5630814690fec87bfbd8b82a) y márcala como **favorita** (estrella). ID de esa página: `3cff454b5630814690fec87bfbd8b82a`.
-2. Fondo de pantalla → **Editar** → **Añadir widget**.
-3. Busca **Notion**.
-4. Tamaño **mediano** o **grande** (el pequeño casi no muestra números).
-5. Toca el widget → elige la página **Finanzas**.
-
-Ahí sí ves un recorte del dashboard (totales / donut según lo que Notion alcance a pintar). Un tap abre la página completa, la misma que el atajo `📊 Ver finanzas`.
-
-Resumen:
-
-| Dónde | Qué ves | Atajo / widget |
-| --- | --- | --- |
-| Centro de control | Botón, sin números | `💰 Nuevo ingreso` y `📊 Ver finanzas` |
-| Pantalla de inicio | Recorte del hub | Widget **Notion** → página Finanzas `3cff454b5630814690fec87bfbd8b82a` |
+El widget de Notion en la pantalla de inicio también solo abre el hub. No crea filas en PostgreSQL.
 
 ---
 
@@ -426,11 +332,9 @@ Resumen:
 
 | Qué ves | Qué revisar |
 | --- | --- |
-| iOS no deja conectar | En el aviso, Permitir. Ajustes → Atajos → (tu atajo) permisos de red. |
-| **401** | El token está mal, con salto de línea, o falta el espacio después de `Bearer`. |
-| **404** | La integración no está conectada a Mayores gastos. |
-| **400** / validation | `Valor` entre comillas, o un `CategoriaID` mal pegado, o `Tipo` distinto de `Gasto`/`Ingreso`. |
-| El gasto sale pero sin categoría | El `CategoriaID` de esa opción del menú está vacío o con un espacio. |
-| No aparece en el mes | Revisa que `FechaHoy` sea `yyyy-MM-dd` (año con 4 cifras). |
-
-Más IDs (si creas una cuenta nueva): [../domain/notion-ids.md](../domain/notion-ids.md).
+| El iPhone no conecta | La URL usa la IPv4 del equipo, no `localhost`. El servidor está en marcha. El firewall deja el puerto `3000`. En el aviso de iOS, Permitir. |
+| **400** y banner `No se registró` | Monto cero, negativo o con decimales. O la categoría o la cuenta no coinciden letra por letra con el menú. |
+| El banner dice registrado y la lista no cambia | La URL no es `/transactions` de esta API, o el `GET` apunta a otro equipo. |
+| La categoría no queda como la tocaste | `Categoria` no es la burbuja del menú, o el texto de la opción tiene un espacio de más. |
+| La fecha cae en otro día | `FechaHoy` tiene que ser `yyyy-MM-dd`, año con 4 cifras. |
+| Aparece una página nueva en Notion | El atajo viejo sigue en uso: la URL todavía es `api.notion.com`. |

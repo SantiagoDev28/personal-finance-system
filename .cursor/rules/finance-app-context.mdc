@@ -9,7 +9,7 @@ La decisión vive en `docs/context.md`, en `docs/decisions/ADR-0003-captura-dire
 
 - El servidor NestJS guarda el movimiento en PostgreSQL: alta, lista, consulta, edición, borrado, filtros y saldo. El saldo se calcula con las filas.
 - La tabla sale de `src/database/migrations`. El monto es un entero mayor que 0. El tipo solo admite `income` o `expense`. No hay columnas de Notion ni `page_id`.
-- El sprint siguiente apunta los atajos de ingreso y de gasto a `POST /transactions`. El cuerpo es el formulario del atajo. El movimiento nuevo queda solo en PostgreSQL.
+- Los atajos de ingreso y de gasto hacen `POST /transactions` con el formulario. El movimiento nuevo queda solo en PostgreSQL. La guía está en `docs/capture-iphone/`.
 - Moneda COP. Valor positivo. El tipo dice si es ingreso o gasto. Plan Financiero queda fuera.
-- `docs/capture-iphone/` describe los atajos que hoy todavía escriben en Notion. Esa carpeta no es el plan de implementación.
+- `📊 Ver finanzas` y el widget de Notion abren el hub. No registran el movimiento.
 - `docs/domain/` describe el hub de Notion que existe hoy. La aplicación no lo lee ni copia sus filas.

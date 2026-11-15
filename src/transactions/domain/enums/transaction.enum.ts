@@ -1,7 +1,7 @@
 export enum Account {
   EFECTIVO = 'Efectivo',
   NEQUI = 'Nequi',
-  BANCOLOMBIA = 'Bancolombia',
+  NU = 'Nu',
   DAVIPLATA = 'Daviplata',
   TARJETA_CREDITO = 'Tarjeta crédito',
 }
@@ -24,6 +24,7 @@ export enum TransactionCategory {
   OTHER = 'Otros',
   SALARY = 'Salario',
   FREELANCE = 'Freelance',
+  BARBERIA = 'Barberia',
   OTHER_INCOME = 'Otros ingresos',
 }
 
@@ -43,13 +44,14 @@ export const EXPENSE_CATEGORIES = [
 export const INCOME_CATEGORIES = [
   TransactionCategory.SALARY,
   TransactionCategory.FREELANCE,
+  TransactionCategory.BARBERIA,
   TransactionCategory.OTHER_INCOME,
 ] as const;
 
 export const ACCOUNTS = [
   Account.EFECTIVO,
   Account.NEQUI,
-  Account.BANCOLOMBIA,
+  Account.NU,
   Account.DAVIPLATA,
   Account.TARJETA_CREDITO,
 ] as const;

@@ -84,7 +84,7 @@ Crear un ingreso:
 ```bash
 curl -X POST http://localhost:3000/transactions \
   -H "Content-Type: application/json" \
-  -d "{\"amount\":100000,\"category\":\"Salario\",\"account\":\"Bancolombia\",\"type\":\"income\",\"date\":\"2026-11-15\"}"
+  -d "{\"amount\":100000,\"category\":\"Barberia\",\"account\":\"Nu\",\"type\":\"income\",\"date\":\"2026-11-15\"}"
 ```
 
 Crear un gasto:
@@ -104,7 +104,7 @@ curl http://localhost:3000/transactions/resume
 
 Con esos dos movimientos la respuesta del saldo es ingresos `100000`, gastos `18000` y saldo `82000`.
 
-Un monto `0`, negativo o con decimales responde `400` y no aparece en la lista. El tipo acepta `income` o `expense`. Un gasto acepta Alimentación, Transporte, Hogar, Tecnología, Educación, Deporte, Ropa, Entretenimiento, Suscripciones u Otros. Un ingreso acepta Salario, Freelance u Otros ingresos. La cuenta acepta Efectivo, Nequi, Bancolombia, Daviplata o Tarjeta crédito. Esos textos se guardan tal cual. Un `id` repetido responde `409`.
+Un monto `0`, negativo o con decimales responde `400` y no aparece en la lista. El tipo acepta `income` o `expense`. Un gasto acepta Alimentación, Transporte, Hogar, Tecnología, Educación, Deporte, Ropa, Entretenimiento, Suscripciones u Otros. Un ingreso acepta Salario, Freelance, Barberia u Otros ingresos. La cuenta acepta Efectivo, Nequi, Nu, Daviplata o Tarjeta crédito. Esos textos se guardan tal cual. Un `id` repetido responde `409`.
 
 ## Corregir, borrar y filtrar
 
