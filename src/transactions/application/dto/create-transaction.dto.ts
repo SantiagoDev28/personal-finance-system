@@ -1,4 +1,4 @@
-import { TransactionCategory, TransactionMethod, TransactionType } from '../transaction.enum';
+import { TransactionCategory, TransactionMethod, TransactionType } from '../../domain/enums/transaction.enum';
 import { IsNumber, IsInt, IsPositive, IsString, IsNotEmpty, IsEnum, IsDateString } from 'class-validator';
 
 export class createTransactionDto {

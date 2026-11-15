@@ -1,5 +1,5 @@
 import { Transaction } from './transaction';
-import { TransactionMethod, TransactionType } from './transaction.enum';
+import { TransactionMethod, TransactionType } from './enums/transaction.enum';
 
 it('creates an expense with a positive amount', () => {
   const transaction = Transaction.create({

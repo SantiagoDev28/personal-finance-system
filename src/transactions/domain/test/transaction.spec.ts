@@ -1,12 +1,16 @@
-import { Transaction } from '../transaction.entity';
-import { TransactionMethod, TransactionType } from '../transaction.enum';
+import { Transaction } from '../entities/transaction.entity';
+import {
+  TransactionCategory,
+  TransactionMethod,
+  TransactionType,
+} from '../enums/transaction.enum';
 
 it('creates an expense with a positive amount', () => {
   const transaction = Transaction.create({
     id: 'mov-1',
     amount: 18000,
     description: 'Almuerzo',
-    category: 'Alimentación',
+    category: TransactionCategory.FOOD,
     method: TransactionMethod.CASH,
     type: TransactionType.EXPENSE,
     date: new Date('2026-09-02T00:00:00.000Z'),
@@ -22,7 +26,7 @@ it('creates an income with a positive amount', () => {
     id: 'mov-2',
     amount: 100000,
     description: 'Salario',
-    category: 'Salario',
+    category: TransactionCategory.OTHER,
     method: TransactionMethod.TRANSFER,
     type: TransactionType.INCOME,
     date: new Date('2026-09-02T00:00:00.000Z'),
@@ -38,7 +42,7 @@ it('throws an error if the amount is not an integer', () => {
       id: 'mov-3',
       amount: 100000.5,
       description: 'Salario',
-      category: 'Salario',
+      category: TransactionCategory.OTHER,
       method: TransactionMethod.TRANSFER,
       type: TransactionType.INCOME,
       date: new Date('2026-09-02T00:00:00.000Z'),
@@ -52,7 +56,7 @@ it('throws an error if the date is not a valid date', () => {
       id: 'mov-4',
       amount: 100000,
       description: 'Salario',
-      category: 'Salario',
+      category: TransactionCategory.OTHER,
       method: TransactionMethod.TRANSFER,
       type: TransactionType.INCOME,
       date: new Date('invalid-date'),
@@ -66,7 +70,7 @@ it('throws an error if amount is not a positive integer', () => {
       id: 'mov-5',
       amount: 0,
       description: 'Salario',
-      category: 'Salario',
+      category: TransactionCategory.OTHER,
       method: TransactionMethod.TRANSFER,
       type: TransactionType.INCOME,
       date: new Date('2026-09-02T00:00:00.000Z'),

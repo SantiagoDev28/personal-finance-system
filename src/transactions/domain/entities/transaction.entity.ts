@@ -1,4 +1,4 @@
-import { TransactionMethod, TransactionType, TransactionCategory } from './transaction.enum';
+import { TransactionMethod, TransactionType, TransactionCategory } from '../enums/transaction.enum';
 import { BadRequestException } from '@nestjs/common';
 
 export class Transaction {

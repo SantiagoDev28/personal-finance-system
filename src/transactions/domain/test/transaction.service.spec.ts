@@ -1,10 +1,10 @@
-import { TransactionService } from '../transaction.service';
-import { TransactionMemory } from '../transaction.memory';
+import { TransactionService } from '../../application/transaction.service';
+import { TransactionMemory } from '../../infrastructure/persistence/transaction.memory';
 import {
   TransactionCategory,
   TransactionMethod,
   TransactionType,
-} from '../transaction.enum';
+} from '../enums/transaction.enum';
 
 describe('TransactionsService', () => {
   let service: TransactionService;
@@ -15,22 +15,22 @@ describe('TransactionsService', () => {
     service = new TransactionService(memory);
   });
 
-  it('should list transactions', () => {
-    service.create({
+  it('should list transactions', async () => {
+    await service.create({
       id: '1',
       amount: 500,
       description: 'Test',
-      category: 'Test',
+      category: TransactionCategory.OTHER,
       method: TransactionMethod.CASH,
       type: TransactionType.INCOME,
       date: new Date('2026-09-02T00:00:00.000Z'),
     });
-    expect(service.findAll({})).toEqual([
+    expect(await service.findAll({})).toEqual([
       {
         id: '1',
         amount: 500,
         description: 'Test',
-        category: 'Test',
+        category: TransactionCategory.OTHER,
         method: TransactionMethod.CASH,
         type: TransactionType.INCOME,
         date: new Date('2026-09-02T00:00:00.000Z'),
@@ -38,12 +38,30 @@ describe('TransactionsService', () => {
     ]);
   });
 
-  it('should save a transaction', () => {
-    const result = service.create({
+  it('lists transactions by date and then by id', async () => {
+    const day = new Date('2026-09-02T00:00:00.000Z');
+    await service.create(movement('b', 100, TransactionType.EXPENSE, day));
+    await service.create(movement('a', 200, TransactionType.INCOME, day));
+    await service.create(
+      movement(
+        'later',
+        300,
+        TransactionType.EXPENSE,
+        new Date('2026-09-03T00:00:00.000Z'),
+      ),
+    );
+
+    expect(
+      (await service.findAll({})).map((transaction) => transaction.id),
+    ).toEqual(['a', 'b', 'later']);
+  });
+
+  it('should save a transaction', async () => {
+    const result = await service.create({
       id: '2',
       amount: 1000,
       description: 'Test',
-      category: 'Test',
+      category: TransactionCategory.OTHER,
       method: TransactionMethod.CASH,
       type: TransactionType.INCOME,
       date: new Date('2026-09-02T00:00:00.000Z'),
@@ -53,102 +71,125 @@ describe('TransactionsService', () => {
       id: '2',
       amount: 1000,
       description: 'Test',
-      category: 'Test',
+      category: TransactionCategory.OTHER,
       method: TransactionMethod.CASH,
       type: TransactionType.INCOME,
       date: new Date('2026-09-02T00:00:00.000Z'),
     });
   });
 
-  it('should find a transaction by id', () => {
-    service.create({
+  it('rejects a repeated id', async () => {
+    const transaction = {
+      id: 'dup',
+      amount: 1000,
+      description: 'Test',
+      category: TransactionCategory.OTHER,
+      method: TransactionMethod.CASH,
+      type: TransactionType.INCOME,
+      date: new Date('2026-09-02T00:00:00.000Z'),
+    };
+
+    await service.create(transaction);
+
+    await expect(service.create(transaction)).rejects.toThrow(
+      'Transaction with id dup already exists',
+    );
+    expect(await service.findAll({})).toHaveLength(1);
+  });
+
+  it('should find a transaction by id', async () => {
+    await service.create({
       id: '3',
       amount: 800,
       description: 'Test',
-      category: 'Test',
+      category: TransactionCategory.OTHER,
       method: TransactionMethod.CASH,
       type: TransactionType.INCOME,
       date: new Date('2026-09-02T00:00:00.000Z'),
     });
 
-    expect(service.findById('3')).toEqual({
+    expect(await service.findById('3')).toEqual({
       id: '3',
       amount: 800,
       description: 'Test',
-      category: 'Test',
+      category: TransactionCategory.OTHER,
       method: TransactionMethod.CASH,
       type: TransactionType.INCOME,
       date: new Date('2026-09-02T00:00:00.000Z'),
     });
   });
 
-  it('should throw when the transaction does not exist', () => {
-    expect(() => service.findById('99')).toThrow(
+  it('should throw when the transaction does not exist', async () => {
+    await expect(service.findById('99')).rejects.toThrow(
       'Transaction with id 99 not found',
     );
   });
 
-  it('should report zero income, expense and balance when the list is empty', () => {
-    expect(service.resume()).toEqual({ income: 0, expense: 0, balance: 0 });
+  it('should report zero income, expense and balance when the list is empty', async () => {
+    expect(await service.resume()).toEqual({
+      income: 0,
+      expense: 0,
+      balance: 0,
+    });
   });
 
-  it('should subtract an expense from income', () => {
+  it('should subtract an expense from income', async () => {
     const date = new Date('2026-09-02T00:00:00.000Z');
 
-    service.create({
+    await service.create({
       id: '4',
       amount: 100000,
       description: 'Salario',
-      category: 'Salario',
+      category: TransactionCategory.OTHER,
       method: TransactionMethod.TRANSFER,
       type: TransactionType.INCOME,
       date,
     });
-    service.create({
+    await service.create({
       id: '5',
       amount: 18000,
       description: 'Almuerzo',
-      category: 'Alimentación',
+      category: TransactionCategory.FOOD,
       method: TransactionMethod.CASH,
       type: TransactionType.EXPENSE,
       date,
     });
 
-    expect(service.resume()).toEqual({
+    expect(await service.resume()).toEqual({
       income: 100000,
       expense: 18000,
       balance: 82000,
     });
-    expect(service.findById('5').amount).toBe(18000);
+    expect((await service.findById('5')).amount).toBe(18000);
   });
 
-  it('should update an existing transaction', () => {
+  it('should update an existing transaction', async () => {
     const originalDate = new Date('2026-09-02T00:00:00.000Z');
     const updatedDate = '2026-10-03T00:00:00.000Z';
 
-    service.create({
+    await service.create({
       id: '6',
       amount: 18000,
       description: 'Almuerzo',
-      category: 'Alimentación',
+      category: TransactionCategory.FOOD,
       method: TransactionMethod.CASH,
       type: TransactionType.EXPENSE,
       date: originalDate,
     });
-    service.create({
+    await service.create({
       id: '7',
       amount: 100000,
       description: 'Salario',
-      category: 'Salario',
+      category: TransactionCategory.OTHER,
       method: TransactionMethod.TRANSFER,
       type: TransactionType.INCOME,
       date: originalDate,
     });
 
-    const result = service.update('6', {
+    const result = await service.update('6', {
       amount: 22000,
       description: 'Cena',
-      category: 'Restaurante',
+      category: TransactionCategory.ENTERTAINMENT,
       method: TransactionMethod.DEBIT_CARD,
       type: TransactionType.EXPENSE,
       date: updatedDate,
@@ -158,235 +199,259 @@ describe('TransactionsService', () => {
       id: '6',
       amount: 22000,
       description: 'Cena',
-      category: 'Restaurante',
+      category: TransactionCategory.ENTERTAINMENT,
       method: TransactionMethod.DEBIT_CARD,
       type: TransactionType.EXPENSE,
       date: new Date(updatedDate),
     });
-    expect(service.findById('6')).toEqual(result);
-    expect(service.findAll({})).toHaveLength(2);
-    expect(service.findById('7')).toEqual({
+    expect(await service.findById('6')).toEqual(result);
+    expect(await service.findAll({})).toHaveLength(2);
+    expect(await service.findById('7')).toEqual({
       id: '7',
       amount: 100000,
       description: 'Salario',
-      category: 'Salario',
+      category: TransactionCategory.OTHER,
       method: TransactionMethod.TRANSFER,
       type: TransactionType.INCOME,
       date: originalDate,
     });
-    expect(service.resume()).toEqual({
+    expect(await service.resume()).toEqual({
       income: 100000,
       expense: 22000,
       balance: 78000,
     });
   });
 
-  it('should update only the fields sent in the body', () => {
+  it('should update only the fields sent in the body', async () => {
     const date = new Date('2026-09-02T00:00:00.000Z');
 
-    service.create({
+    await service.create({
       id: '8',
       amount: 18000,
       description: 'Almuerzo',
-      category: 'Alimentación',
+      category: TransactionCategory.FOOD,
       method: TransactionMethod.CASH,
       type: TransactionType.EXPENSE,
       date,
     });
 
-    const result = service.update('8', { amount: 22000 });
+    const result = await service.update('8', { amount: 22000 });
 
     expect(result).toEqual({
       id: '8',
       amount: 22000,
       description: 'Almuerzo',
-      category: 'Alimentación',
+      category: TransactionCategory.FOOD,
       method: TransactionMethod.CASH,
       type: TransactionType.EXPENSE,
       date,
     });
-    expect(service.resume()).toEqual({
+    expect(await service.resume()).toEqual({
       income: 0,
       expense: 22000,
       balance: -22000,
     });
   });
 
-  it('should throw when updating a transaction that does not exist', () => {
-    expect(() => service.update('99', { amount: 1000 })).toThrow(
+  it('should throw when updating a transaction that does not exist', async () => {
+    await expect(service.update('99', { amount: 1000 })).rejects.toThrow(
       'Transaction with id 99 not found',
     );
   });
 
-  it('should keep the stored transaction when the updated amount is not greater than 0', () => {
+  it('should keep the stored transaction when the updated amount is not greater than 0', async () => {
     const date = new Date('2026-09-02T00:00:00.000Z');
 
-    service.create({
+    await service.create({
       id: '9',
       amount: 18000,
       description: 'Almuerzo',
-      category: 'Alimentación',
+      category: TransactionCategory.FOOD,
       method: TransactionMethod.CASH,
       type: TransactionType.EXPENSE,
       date,
     });
 
-    expect(() =>
+    await expect(
       service.update('9', {
         amount: 0,
         description: 'Cena',
-        category: 'Restaurante',
+        category: TransactionCategory.ENTERTAINMENT,
         method: TransactionMethod.DEBIT_CARD,
       }),
-    ).toThrow('Amount must be greater than 0');
+    ).rejects.toThrow('Amount must be greater than 0');
 
-    expect(service.findById('9')).toEqual({
+    expect(await service.findById('9')).toEqual({
       id: '9',
       amount: 18000,
       description: 'Almuerzo',
-      category: 'Alimentación',
+      category: TransactionCategory.FOOD,
       method: TransactionMethod.CASH,
       type: TransactionType.EXPENSE,
       date,
     });
   });
 
-  it('should delete an existing transaction', () => {
+  it('should delete an existing transaction', async () => {
     const date = new Date('2026-09-02T00:00:00.000Z');
 
-    service.create({
+    await service.create({
       id: '10',
       amount: 100000,
       description: 'Salario',
-      category: 'Salario',
+      category: TransactionCategory.OTHER,
       method: TransactionMethod.TRANSFER,
       type: TransactionType.INCOME,
       date,
     });
-    service.create({
+    await service.create({
       id: '11',
       amount: 18000,
       description: 'Almuerzo',
-      category: 'Alimentación',
+      category: TransactionCategory.FOOD,
       method: TransactionMethod.CASH,
       type: TransactionType.EXPENSE,
       date,
     });
 
-    expect(service.delete('11')).toEqual({
+    expect(await service.delete('11')).toEqual({
       message: 'Transaction with id 11 deleted successfully',
     });
-    expect(service.findAll({})).toEqual([
+    expect(await service.findAll({})).toEqual([
       {
         id: '10',
         amount: 100000,
         description: 'Salario',
-        category: 'Salario',
+        category: TransactionCategory.OTHER,
         method: TransactionMethod.TRANSFER,
         type: TransactionType.INCOME,
         date,
       },
     ]);
-    expect(() => service.findById('11')).toThrow(
+    await expect(service.findById('11')).rejects.toThrow(
       'Transaction with id 11 not found',
     );
-    expect(service.resume()).toEqual({
+    expect(await service.resume()).toEqual({
       income: 100000,
       expense: 0,
       balance: 100000,
     });
   });
 
-  it('should throw when deleting a transaction that does not exist', () => {
-    expect(() => service.delete('99')).toThrow(
+  it('should throw when deleting a transaction that does not exist', async () => {
+    await expect(service.delete('99')).rejects.toThrow(
       'Transaction with id 99 not found',
     );
   });
 
-  it('should include a stored instant from the start of startDate through the last second of endDate', () => {
-    // startDate is that calendar date at 00:00:00.000 UTC.
-    // endDate as YYYY-MM-DD includes the day through its last second, 23:59:59.999 UTC.
-    seedOctoberRange(service);
+  it('should include a stored instant from the start of startDate through the last second of endDate', async () => {
+    await seedOctoberRange(service);
     const filter = { startDate: '2026-10-01', endDate: '2026-10-03' };
+    const listed = await service.findAll(filter);
 
-    expect(service.findAll(filter).map((transaction) => transaction.id)).toEqual([
+    expect(listed.map((transaction) => transaction.id)).toEqual([
       'start',
       'middle',
       'end-afternoon',
       'end-last',
     ]);
-    expect(service.resume(filter)).toEqual({
+    expect(await service.resume(filter)).toEqual({
       income: 13000,
       expense: 6000,
       balance: 7000,
     });
-    expect(service.resume(filter)).toEqual(
-      memory.calculateResume(service.findAll(filter)),
-    );
-    expect(service.resume()).toEqual({
+    expect(await service.resume(filter)).toEqual(calculateResume(listed));
+    expect(await service.resume()).toEqual({
       income: 13000,
       expense: 12000,
       balance: 1000,
     });
   });
 
-  it('should keep an endDate that includes a time at that instant', () => {
-    seedOctoberRange(service);
+  it('should keep an endDate that includes a time at that instant', async () => {
+    await seedOctoberRange(service);
     const filter = {
       startDate: '2026-10-01',
       endDate: '2026-10-03T12:00:00.000Z',
     };
 
-    expect(service.findAll(filter).map((transaction) => transaction.id)).toEqual([
-      'start',
-      'middle',
-    ]);
-    expect(service.resume(filter)).toEqual({
+    expect(
+      (await service.findAll(filter)).map((transaction) => transaction.id),
+    ).toEqual(['start', 'middle']);
+    expect(await service.resume(filter)).toEqual({
       income: 10000,
       expense: 4000,
       balance: 6000,
     });
   });
 
-  it('should return an empty list and a zero resume when the range has no transactions', () => {
-    seedOctoberRange(service);
+  it('should return an empty list and a zero resume when the range has no transactions', async () => {
+    await seedOctoberRange(service);
     const filter = { startDate: '2026-11-01', endDate: '2026-11-02' };
 
-    expect(service.findAll(filter)).toEqual([]);
-    expect(service.resume(filter)).toEqual({
+    expect(await service.findAll(filter)).toEqual([]);
+    expect(await service.resume(filter)).toEqual({
       income: 0,
       expense: 0,
       balance: 0,
     });
-    expect(service.resume()).toEqual(
-      memory.calculateResume(service.findAll({})),
+    expect(await service.resume()).toEqual(
+      calculateResume(await service.findAll({})),
     );
   });
 
-  it('should filter the resume by type, category and date range together', () => {
-    seedOctoberRange(service);
+  it('should filter the resume by type, category and date range together', async () => {
+    await seedOctoberRange(service);
     const filter = {
       type: TransactionType.EXPENSE,
       category: TransactionCategory.FOOD,
       startDate: '2026-10-01',
       endDate: '2026-10-03',
     };
+    const listed = await service.findAll(filter);
 
-    expect(service.findAll(filter).map((transaction) => transaction.id)).toEqual([
-      'middle',
-    ]);
-    expect(service.resume(filter)).toEqual({
+    expect(listed.map((transaction) => transaction.id)).toEqual(['middle']);
+    expect(await service.resume(filter)).toEqual({
       income: 0,
       expense: 4000,
       balance: -4000,
     });
-    expect(service.resume(filter)).toEqual(
-      memory.calculateResume(service.findAll(filter)),
-    );
+    expect(await service.resume(filter)).toEqual(calculateResume(listed));
   });
 });
 
-function seedOctoberRange(service: TransactionService) {
+function calculateResume(
+  transactions: { type: TransactionType; amount: number }[],
+) {
+  const income = transactions
+    .filter((transaction) => transaction.type === TransactionType.INCOME)
+    .reduce((total, transaction) => total + transaction.amount, 0);
+  const expense = transactions
+    .filter((transaction) => transaction.type === TransactionType.EXPENSE)
+    .reduce((total, transaction) => total + transaction.amount, 0);
+
+  return { income, expense, balance: income - expense };
+}
+
+function movement(
+  id: string,
+  amount: number,
+  type: TransactionType,
+  date: Date,
+  category: TransactionCategory = TransactionCategory.OTHER,
+) {
+  return {
+    id,
+    amount,
+    description: id,
+    category,
+    method: TransactionMethod.CASH,
+    type,
+    date,
+  };
+}
+
+async function seedOctoberRange(service: TransactionService) {
   const rows = [
     {
       id: 'before',
@@ -433,7 +498,7 @@ function seedOctoberRange(service: TransactionService) {
   ];
 
   for (const row of rows) {
-    service.create({
+    await service.create({
       id: row.id,
       amount: row.amount,
       description: row.id,
