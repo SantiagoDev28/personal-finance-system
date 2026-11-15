@@ -22,7 +22,7 @@ const TRANSACTION_SELECT = `
     t.description,
     t.date,
     t.category,
-    t.method,
+    t.account,
     t.type
   FROM transactions t
 `;
@@ -39,7 +39,7 @@ export class TransactionPostgres implements TransactionRepository {
       await this.pool.query(
         `
         INSERT INTO transactions (
-          id, amount, description, date, category, method, type
+          id, amount, description, date, category, account, type
         )
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         `,
@@ -65,7 +65,7 @@ export class TransactionPostgres implements TransactionRepository {
         description = $3,
         date = $4,
         category = $5,
-        method = $6,
+        account = $6,
         type = $7
       WHERE id = $1
       `,
@@ -142,7 +142,7 @@ export class TransactionPostgres implements TransactionRepository {
       transaction.description,
       transaction.date,
       transaction.category,
-      transaction.method,
+      transaction.account,
       transaction.type,
     ];
   }

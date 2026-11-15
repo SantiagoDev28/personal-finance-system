@@ -1,4 +1,4 @@
-import { TransactionMethod, TransactionType } from './enums/transaction.enum';
+import { TransactionType } from './enums/transaction.enum';
 
 export class Transaction {
   private constructor(
@@ -6,7 +6,7 @@ export class Transaction {
     public readonly amount: number,
     public readonly description: string,
     public readonly category: string,
-    public readonly method: TransactionMethod,
+    public readonly account: string,
     public readonly type: TransactionType,
     public readonly date: Date,
   ) {}
@@ -16,7 +16,7 @@ export class Transaction {
     amount: number;
     description: string;
     category: string;
-    method: TransactionMethod;
+    account: string;
     type: TransactionType;
     date: Date;
   }): Transaction {
@@ -29,22 +29,22 @@ export class Transaction {
     if (
       !data.id.trim() ||
       !data.category.trim() ||
-      !data.method.trim() ||
+      !data.account.trim() ||
       !data.type.trim()
     ) {
       throw new Error(
-        `${data.id.trim()}, ${data.category.trim()}, ${data.method.trim()}, ${data.type.trim()} are required`,
+        `${data.id.trim()}, ${data.category.trim()}, ${data.account.trim()}, ${data.type.trim()} are required`,
       );
     }
     if (Number.isNaN(data.date.getTime())) {
-      throw new Error(`Date must be a valid date`);
+      throw new Error('Date must be a valid date');
     }
     return new Transaction(
       data.id,
       data.amount,
       data.description,
       data.category,
-      data.method,
+      data.account,
       data.type,
       data.date,
     );

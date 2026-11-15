@@ -1,7 +1,7 @@
 import { Transaction } from '../entities/transaction.entity';
 import {
   TransactionCategory,
-  TransactionMethod,
+  Account,
   TransactionType,
 } from '../enums/transaction.enum';
 
@@ -11,13 +11,13 @@ it('creates an expense with a positive amount', () => {
     amount: 18000,
     description: 'Almuerzo',
     category: TransactionCategory.FOOD,
-    method: TransactionMethod.CASH,
+    account: Account.EFECTIVO,
     type: TransactionType.EXPENSE,
     date: new Date('2026-09-02T00:00:00.000Z'),
   });
   expect(transaction.type).toBe(TransactionType.EXPENSE);
   expect(transaction.amount).toBe(18000);
-  expect(transaction.method).toBe(TransactionMethod.CASH);
+  expect(transaction.account).toBe(Account.EFECTIVO);
   expect(transaction.date).toEqual(new Date('2026-09-02T00:00:00.000Z'));
 });
 
@@ -26,14 +26,14 @@ it('creates an income with a positive amount', () => {
     id: 'mov-2',
     amount: 100000,
     description: 'Salario',
-    category: TransactionCategory.OTHER,
-    method: TransactionMethod.TRANSFER,
+    category: TransactionCategory.SALARY,
+    account: Account.BANCOLOMBIA,
     type: TransactionType.INCOME,
     date: new Date('2026-09-02T00:00:00.000Z'),
   });
   expect(transaction.type).toBe(TransactionType.INCOME);
   expect(transaction.amount).toBe(100000);
-  expect(transaction.method).toBe(TransactionMethod.TRANSFER);
+  expect(transaction.account).toBe(Account.BANCOLOMBIA);
 });
 
 it('throws an error if the amount is not an integer', () => {
@@ -42,8 +42,8 @@ it('throws an error if the amount is not an integer', () => {
       id: 'mov-3',
       amount: 100000.5,
       description: 'Salario',
-      category: TransactionCategory.OTHER,
-      method: TransactionMethod.TRANSFER,
+      category: TransactionCategory.SALARY,
+      account: Account.BANCOLOMBIA,
       type: TransactionType.INCOME,
       date: new Date('2026-09-02T00:00:00.000Z'),
     }),
@@ -56,8 +56,8 @@ it('throws an error if the date is not a valid date', () => {
       id: 'mov-4',
       amount: 100000,
       description: 'Salario',
-      category: TransactionCategory.OTHER,
-      method: TransactionMethod.TRANSFER,
+      category: TransactionCategory.SALARY,
+      account: Account.BANCOLOMBIA,
       type: TransactionType.INCOME,
       date: new Date('invalid-date'),
     }),
@@ -70,8 +70,8 @@ it('throws an error if amount is not a positive integer', () => {
       id: 'mov-5',
       amount: 0,
       description: 'Salario',
-      category: TransactionCategory.OTHER,
-      method: TransactionMethod.TRANSFER,
+      category: TransactionCategory.SALARY,
+      account: Account.BANCOLOMBIA,
       type: TransactionType.INCOME,
       date: new Date('2026-09-02T00:00:00.000Z'),
     }),

@@ -43,7 +43,7 @@ describe('transaction schema migrations', () => {
       'amount',
       'description',
       'category',
-      'method',
+      'account',
       'type',
       'date',
     ]);
@@ -61,7 +61,7 @@ describe('transaction schema migrations', () => {
       'amount',
       'description',
       'category',
-      'method',
+      'account',
       'type',
       'date',
     ]);
@@ -157,7 +157,7 @@ function insert(
   overrides: { id?: string; amount?: number; type?: string } = {},
 ): Promise<unknown> {
   return pool.query(
-    `INSERT INTO transactions (id, amount, description, category, method, type, date)
+    `INSERT INTO transactions (id, amount, description, category, account, type, date)
      VALUES ($1, $2, $3, $4, $5, $6, $7)`,
     [
       overrides.id ?? 'mov-amount',
