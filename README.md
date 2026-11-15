@@ -1,6 +1,6 @@
 # Finanzas personales
 
-Registro de ingresos y gastos en memoria. NestJS valida cada movimiento, lo guarda, lo lista, lo edita, lo borra y calcula ingresos, gastos y saldo. No hay base de datos: al reiniciar el servidor la lista vuelve a quedar vacía.
+Registro de ingresos y gastos en PostgreSQL. NestJS valida cada movimiento, lo guarda, lo lista, lo edita, lo borra y calcula ingresos, gastos y saldo. El saldo no es una columna: sale de las filas. Al reiniciar el servidor, los movimientos siguen.
 
 La moneda es COP y el monto se guarda como un peso entero positivo. El tipo dice si suma o resta. La decisión está en [docs/decisions/ADR-0001-dinero-moneda-y-fecha.md](docs/decisions/ADR-0001-dinero-moneda-y-fecha.md). El camino siguiente, atajo → API → PostgreSQL, está en [docs/decisions/ADR-0003-captura-directa.md](docs/decisions/ADR-0003-captura-directa.md).
 
@@ -16,7 +16,15 @@ pnpm install
 pnpm test
 ```
 
-Jest corre las pruebas del dominio y del servicio en memoria. No hace falta levantar el servidor ni una base de datos.
+Jest corre las pruebas del dominio y del servicio en memoria. No abre PostgreSQL.
+
+Los flujos de alta, edición, borrado, filtro, saldo y reinicio corren en otra base, `personal_finance_test`:
+
+```bash
+pnpm test:db
+```
+
+Ese comando crea la base de prueba si no existe, aplica el esquema y el catálogo, y no escribe en `personal_finance`. PostgreSQL tiene que estar en marcha y el `.env` tiene que poder conectar.
 
 ## Lint y formato
 
@@ -27,13 +35,46 @@ pnpm run lint
 
 `pnpm run format` reescribe `src/**/*.ts` y `test/**/*.ts` con Prettier. `pnpm run lint` ejecuta ESLint sobre el proyecto y corrige lo que la configuración permite. Los dos comandos tienen que terminar sin error.
 
+## Base local
+
+PostgreSQL queda instalado en la máquina. La aplicación Nest no corre en Docker. La decisión de usar SQL explícito, sin ORM, está en [docs/decisions/ADR-0004-acceso-postgresql.md](docs/decisions/ADR-0004-acceso-postgresql.md).
+
+1. Instala PostgreSQL 16 y deja el servicio escuchando en el puerto `5432`.
+2. En `psql`, como superusuario de esa instalación:
+
+```sql
+CREATE USER finance WITH PASSWORD 'finance_local_only';
+CREATE DATABASE personal_finance OWNER finance;
+```
+
+3. Copia el ejemplo. Los valores son ficticios y `.env` no se versiona.
+
+```bash
+cp .env.example .env
+```
+
+En PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+4. Aplica el esquema y el catálogo. El `id` del movimiento es el texto que envía el API. Si la tabla se creó antes con `id` uuid, este script lo deja en texto. Volver a ejecutarlo no duplica las categorías.
+
+```bash
+psql -h localhost -p 5432 -U finance -d personal_finance -f src/database/schema.sql
+psql -h localhost -p 5432 -U finance -d personal_finance -f src/database/seeds/data.psql
+```
+
 ## Arranque
 
 ```bash
 pnpm run start:dev
 ```
 
-El servidor queda en [http://localhost:3000](http://localhost:3000).
+Sin `.env`, o con `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USER`, `DATABASE_PASSWORD` o `DATABASE_NAME` vacíos, el proceso escribe qué falta y termina. No abre el puerto. Si las variables están y PostgreSQL rechaza la conexión, el proceso también termina y muestra el error.
+
+Con la base creada y el `.env` presente, el servidor queda en [http://localhost:3000](http://localhost:3000). Un movimiento creado sigue en la lista después de reiniciar.
 
 ## Probar un movimiento y el saldo
 
