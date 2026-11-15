@@ -1,10 +1,8 @@
-# Widgets de iPhone (sin formulario Notion)
+# Widgets de iPhone
 
-Referencia de la captura actual en el teléfono. El atajo todavía deja el movimiento en Notion. El plan siguiente lo envía a la API: [../decisions/ADR-0003-captura-directa.md](../decisions/ADR-0003-captura-directa.md).
+El gasto y el ingreso se capturan con un widget de **Atajos**. El toque pregunta el monto y hace `POST /transactions`. La guía está en [shortcuts.md](shortcuts.md). PostgreSQL guarda la fila.
 
 El widget nativo de Notion **solo abre una página**. No pregunta el monto ni crea un movimiento.
-
-La captura vive en un **widget de Atajos**. Notion ni se abre.
 
 ```text
 Pantalla de inicio
@@ -12,84 +10,62 @@ Pantalla de inicio
         ▼
 ┌─────────────────────────┐
 │     MIS FINANZAS        │
-│  💸 Registrar gasto     │  ← widget Atajos (captura)
-│  💰 Registrar ingreso   │  ← widget Atajos (captura)
-│  📊 Ver resumen         │  ← widget Atajos o Notion
+│  💸 Nuevo gasto         │  ← Atajos, POST /transactions
+│  💰 Nuevo ingreso       │  ← Atajos, POST /transactions
+│  📊 Ver finanzas        │  ← abre el hub, no registra
 └───────────┬─────────────┘
             │ tap 💸
             ▼
        ¿Cuánto?     15000
        Categoría    Alimentación
-       Cuenta       Nequi
+       Cuenta       Efectivo
             │
             ▼
-     POST → Mayores gastos
+     POST /transactions
             │
             ▼
-       ✓ Gasto registrado
+       ✓ Gasto registrado, si la respuesta trae id
 ```
 
-## Qué widget usar para cada acción
+## Qué widget usar
 
-| Acción | Widget | Por qué |
+| Acción | Widget | Qué hace |
 | --- | --- | --- |
-| Registrar gasto | **Atajos** | Pregunta en el sistema iOS y escribe en Notion |
-| Registrar ingreso | **Atajos** | Igual, con `Tipo = Ingreso` |
-| Ver resumen | **Notion** o Atajos «Abrir URL» | Solo hay que abrir el hub Finanzas |
+| Nuevo gasto | **Atajos** | Pregunta monto, categoría y cuenta. Envía `expense` |
+| Nuevo ingreso | **Atajos** | Igual, con `income` y el menú de ingreso |
+| Ver finanzas | **Atajos** o **Notion** | Abre el hub. No crea una fila |
 
-No uses Share form ni la página «Probar atajo iPhone» para el hábito diario. Eso era un puente. El destino es el atajo con API.
+## Montar la central
 
-## Montar la central (una vez)
+### 1. Dos atajos de captura y uno para ver
 
-### 1. Tres atajos
+En la app **Atajos**, sigue [shortcuts.md](shortcuts.md):
 
-En la app **Atajos**, crea:
-
-Guía toque a toque (qué buscar en Atajos, qué pegar, cómo armar el widget): [shortcuts.md](shortcuts.md). Ids canónicos: [../domain/notion-ids.md](../domain/notion-ids.md).
-
-1. `💸 Nuevo gasto` — pregunta valor, categoría, cuenta; `POST` a Notion.
-2. `💰 Nuevo ingreso` — duplicado del primero, `Tipo = Ingreso`.
-3. `📊 Ver finanzas` — **Abrir URL** → `https://www.notion.so/3cff454b5630814690fec87bfbd8b82a`
+1. `💸 Nuevo gasto` — `POST /transactions` con `type` `expense`.
+2. `💰 Nuevo ingreso` — el mismo POST con `type` `income`.
+3. `📊 Ver finanzas` — **Abrir URL** del hub. No envía el formulario.
 
 ### 2. Widget en la pantalla de inicio
 
 1. Mantén pulsado el fondo → **Editar** → **Añadir widget**.
 2. Busca **Atajos**.
-3. Elige tamaño **mediano** (lista de varios atajos) o tres widgets **pequeños**.
+3. Tamaño **mediano**, o tres widgets **pequeños**.
 4. Asigna `💸 Nuevo gasto`, `💰 Nuevo ingreso` y `📊 Ver finanzas`.
 
-Opcional, abajo: widget **Notion** pequeño apuntando a **Finanzas** (márcala como favorita). Es un atajo visual al dashboard, no a la captura.
+El widget **Notion** de la pantalla de inicio, si lo dejas, solo muestra el hub. No es la captura.
 
-### 3. Centro de control (el que ya usas para gasto)
+### 3. Centro de control
 
-Ajustes → **Centro de control** → **Añadir un control** → **Atajo** → asigna `💰 Nuevo ingreso` y `📊 Ver finanzas`. Ahí solo hay botones, no una miniatura del dashboard.
+Ajustes → **Centro de control** → **Añadir un control** → **Atajo** → `💸 Nuevo gasto` y `💰 Nuevo ingreso`. Ahí solo hay botones.
 
-### 4. Vista previa con números
+## Cómo se siente
 
-Pantalla de inicio → widget **Notion** mediano → página **Finanzas** (`3cff454b5630814690fec87bfbd8b82a`). Eso sí muestra un recorte del hub.
+1. Tap en **💸 Nuevo gasto**.
+2. `15000`.
+3. **Alimentación**.
+4. **Efectivo**.
+5. Banner **Gasto registrado** solo si la API devolvió el movimiento.
 
-## Cómo se siente al usarlo
+La fecha es hoy. El concepto es la categoría. Después, `GET /transactions` muestra la fila. Notion no recibe una página por ese toque.
 
-En la calle, después de pagar el almuerzo:
-
-1. Tap en **💸 Registrar gasto** (ni Notion ni Safari).
-2. Teclado numérico: `15000`.
-3. Lista: **Alimentación**.
-4. Lista: **Nequi**.
-5. Banner: **Gasto registrado**.
-
-El concepto puede omitirse (el atajo usa el nombre de la categoría). Fecha = hoy. Necesidad y notas se dejan para el domingo, o nunca.
-
-Luego, en el hub Finanzas, el gasto ya está en Mayores gastos, el donut y el total del mes.
-
-## Qué hay que tener en Notion (ya está)
-
-- Base **Mayores gastos** (Movimientos) con Categoría y Cuenta como relaciones.
-- Integración interna conectada a esa base, a Categorías y a Cuentas.
-- Token del atajo (llavero del iPhone, no el repo).
-
-IDs y JSON del `POST`: [shortcuts.md](shortcuts.md) y [../domain/notion-ids.md](../domain/notion-ids.md).
-
-## Lo que no hace el MCP
-
-No puede instalar el widget ni crear el atajo en tu iPhone. Las bases y los IDs ya están; el anidado al teléfono es el paso que haces una vez en Atajos.
+El atajo no se instala solo. Hay que armarlo una vez en el iPhone, con el servidor encendido y la URL de este equipo.
