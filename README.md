@@ -59,7 +59,7 @@ En PowerShell:
 Copy-Item .env.example .env
 ```
 
-4. Aplica las migraciones. Crean la tabla del movimiento en una base vacía: `id` único, monto entero mayor que 0, tipo `income` o `expense`, y un índice por fecha. Volver a ejecutarlas no duplica la tabla.
+4. Aplica las migraciones. Crean la tabla del movimiento en una base vacía: `id` único, monto entero mayor que 0, tipo `income` o `expense`, categoría, cuenta y un índice por fecha. Volver a ejecutarlas no duplica la tabla. Si la tabla todavía tiene la columna `method`, la renombran a `account`.
 
 ```bash
 pnpm db:migrate
@@ -77,12 +77,14 @@ Con la base creada y el `.env` presente, el servidor queda en [http://localhost:
 
 ## Probar un movimiento y el saldo
 
+El cuerpo es el formulario del atajo: monto, categoría, cuenta, fecha `yyyy-MM-dd` y tipo. No hace falta `id`, `description` ni `method`. Si no viene `id`, la respuesta trae el que asigna el servidor. La fecha se guarda como el inicio de ese día en UTC, como dice [docs/decisions/ADR-0002-rango-de-fechas.md](docs/decisions/ADR-0002-rango-de-fechas.md). El concepto del movimiento es la categoría elegida.
+
 Crear un ingreso:
 
 ```bash
 curl -X POST http://localhost:3000/transactions \
   -H "Content-Type: application/json" \
-  -d "{\"id\":\"mov-1\",\"amount\":100000,\"description\":\"Salario\",\"category\":\"other\",\"method\":\"transfer\",\"type\":\"income\",\"date\":\"2026-09-02T00:00:00.000Z\"}"
+  -d "{\"amount\":100000,\"category\":\"Salario\",\"account\":\"Bancolombia\",\"type\":\"income\",\"date\":\"2026-11-15\"}"
 ```
 
 Crear un gasto:
@@ -90,7 +92,7 @@ Crear un gasto:
 ```bash
 curl -X POST http://localhost:3000/transactions \
   -H "Content-Type: application/json" \
-  -d "{\"id\":\"mov-2\",\"amount\":18000,\"description\":\"Almuerzo\",\"category\":\"food\",\"method\":\"cash\",\"type\":\"expense\",\"date\":\"2026-09-02T00:00:00.000Z\"}"
+  -d "{\"amount\":18000,\"category\":\"Alimentación\",\"account\":\"Efectivo\",\"type\":\"expense\",\"date\":\"2026-11-15\"}"
 ```
 
 Ver la lista y el saldo:
@@ -102,14 +104,14 @@ curl http://localhost:3000/transactions/resume
 
 Con esos dos movimientos la respuesta del saldo es ingresos `100000`, gastos `18000` y saldo `82000`.
 
-Un monto `0` responde `400` y no aparece en la lista. `category` acepta `food`, `transportation`, `housing`, `utilities`, `entertainment` u `other`. `method` acepta `cash`, `credit_card`, `debit_card`, `transfer` u `other`. `type` acepta `income` o `expense`. Un `id` repetido responde `409`.
+Un monto `0`, negativo o con decimales responde `400` y no aparece en la lista. El tipo acepta `income` o `expense`. Un gasto acepta Alimentación, Transporte, Hogar, Tecnología, Educación, Deporte, Ropa, Entretenimiento, Suscripciones u Otros. Un ingreso acepta Salario, Freelance u Otros ingresos. La cuenta acepta Efectivo, Nequi, Bancolombia, Daviplata o Tarjeta crédito. Esos textos se guardan tal cual. Un `id` repetido responde `409`.
 
 ## Corregir, borrar y filtrar
 
-Editar el monto del gasto:
+En la URL va el `id` que devolvió el alta. Editar el monto del gasto:
 
 ```bash
-curl -X PATCH http://localhost:3000/transactions/mov-2 \
+curl -X PATCH http://localhost:3000/transactions/{id} \
   -H "Content-Type: application/json" \
   -d "{\"amount\":20000}"
 ```
@@ -117,13 +119,13 @@ curl -X PATCH http://localhost:3000/transactions/mov-2 \
 Borrarlo:
 
 ```bash
-curl -X DELETE http://localhost:3000/transactions/mov-2
+curl -X DELETE http://localhost:3000/transactions/{id}
 ```
 
 Filtrar la lista y el saldo. `startDate` abre el día y `endDate` lo incluye hasta el último instante, como dice [docs/decisions/ADR-0002-rango-de-fechas.md](docs/decisions/ADR-0002-rango-de-fechas.md).
 
 ```bash
-curl "http://localhost:3000/transactions?type=expense&category=food&startDate=2026-09-01&endDate=2026-09-30"
+curl "http://localhost:3000/transactions?type=expense&category=Alimentación&startDate=2026-09-01&endDate=2026-09-30"
 curl "http://localhost:3000/transactions/resume?type=expense&startDate=2026-09-01&endDate=2026-09-30"
 ```
 

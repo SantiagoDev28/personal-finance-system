@@ -1,4 +1,4 @@
-import { TransactionMethod, TransactionType, TransactionCategory } from '../enums/transaction.enum';
+import { TransactionType } from '../enums/transaction.enum';
 import { BadRequestException } from '@nestjs/common';
 
 export class Transaction {
@@ -6,8 +6,8 @@ export class Transaction {
     public readonly id: string,
     public readonly amount: number,
     public readonly description: string,
-    public readonly category: TransactionCategory,
-    public readonly method: TransactionMethod,
+    public readonly category: string,
+    public readonly account: string,
     public readonly type: TransactionType,
     public readonly date: Date,
   ) {}
@@ -16,8 +16,8 @@ export class Transaction {
     id: string;
     amount: number;
     description: string;
-    category: TransactionCategory;
-    method: TransactionMethod;
+    category: string;
+    account: string;
     type: TransactionType;
     date: Date;
   }): Transaction {
@@ -30,49 +30,42 @@ export class Transaction {
     if (
       !data.id.trim() ||
       !data.category.trim() ||
-      !data.method.trim() ||
+      !data.account.trim() ||
       !data.type.trim()
     ) {
       throw new BadRequestException(
-        `${data.id.trim()}, ${data.category.trim()}, ${data.method.trim()}, ${data.type.trim()} are required`,
+        `${data.id.trim()}, ${data.category.trim()}, ${data.account.trim()}, ${data.type.trim()} are required`,
       );
     }
     if (Number.isNaN(data.date.getTime())) {
-      throw new BadRequestException(`Date must be a valid date`);
+      throw new BadRequestException('Date must be a valid date');
     }
     if (
       data.type !== TransactionType.INCOME &&
       data.type !== TransactionType.EXPENSE
     ) {
-      throw new BadRequestException(`Type must be a valid type`);
+      throw new BadRequestException('Type must be a valid type');
     }
     return new Transaction(
       data.id,
       data.amount,
       data.description,
       data.category,
-      data.method,
+      data.account,
       data.type,
       data.date,
     );
   }
+
   public static update(data: {
     id: string;
     amount: number;
     description: string;
-    category: TransactionCategory;
-    method: TransactionMethod;
+    category: string;
+    account: string;
     type: TransactionType;
     date: Date;
   }): Transaction {
-    return Transaction.create({
-      id: data.id,
-      amount: data.amount,
-      description: data.description,
-      category: data.category,
-      method: data.method,
-      type: data.type,
-      date: data.date,
-    });
+    return Transaction.create(data);
   }
 }
