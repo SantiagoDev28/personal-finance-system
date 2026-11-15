@@ -11,16 +11,16 @@ export class TransactionService {
   constructor(
     @Inject(TRANSACTION_REPOSITORY)
     private readonly transactionRepository: TransactionRepository,
-  ) { }
+  ) {}
 
-  create(transaction: Transaction): Transaction {
+  async create(transaction: Transaction): Promise<Transaction> {
     const newTransaction = Transaction.create(transaction);
-    this.transactionRepository.save(newTransaction);
+    await this.transactionRepository.save(newTransaction);
     return newTransaction;
   }
 
-  update(id: string, data: updateTransactionDto): Transaction {
-    const existingTransaction = this.transactionRepository.findById(id);
+  async update(id: string, data: updateTransactionDto): Promise<Transaction> {
+    const existingTransaction = await this.transactionRepository.findById(id);
 
     const updatedTransaction = Transaction.create({
       id: existingTransaction.id,
@@ -29,44 +29,49 @@ export class TransactionService {
       category: data.category ?? existingTransaction.category,
       method: data.method ?? existingTransaction.method,
       type: data.type ?? existingTransaction.type,
-      date: data.date !== undefined ? new Date(data.date) : existingTransaction.date,
+      date:
+        data.date !== undefined
+          ? new Date(data.date)
+          : existingTransaction.date,
     });
     return this.transactionRepository.update(updatedTransaction);
-
   }
 
-  findAll(filter: FilterTransactionDto): Transaction[] {
-    return this.transactionRepository.findByFilter(filter);
+  async findAll(filter: FilterTransactionDto): Promise<Transaction[]> {
+    return await this.transactionRepository.findByFilter(filter);
   }
 
-  findById(id: string): Transaction {
-    return this.transactionRepository.findById(id);
+  async findById(id: string): Promise<Transaction> {
+    return await this.transactionRepository.findById(id);
   }
 
-  resume(filter?: FilterTransactionDto) {
+  async resume(filter?: FilterTransactionDto) {
     const transactions = filter
-      ? this.transactionRepository.findByFilter(filter)
-      : this.transactionRepository.findAll();
-
-    const income = transactions
-      .filter((transaction) => transaction.type === TransactionType.INCOME)
-      .reduce((total, transaction) => total + transaction.amount, 0);
-
-    const expense = transactions
-      .filter((transaction) => transaction.type === TransactionType.EXPENSE)
-      .reduce((total, transaction) => total + transaction.amount, 0);
-
-    return {
-      income,
-      expense,
-      balance: income - expense,
-    };
+      ? await this.transactionRepository.findByFilter(filter)
+      : await this.transactionRepository.findAll();
+    return balanceOf(transactions);
   }
 
-  delete(id: string): { message: string; } {
-    this.transactionRepository.delete(id);
+  async delete(id: string): Promise<{ message: string }> {
+    await this.transactionRepository.delete(id);
     return {
       message: `Transaction with id ${id} deleted successfully`,
-    }
+    };
   }
+}
+
+function balanceOf(transactions: Transaction[]) {
+  const income = transactions
+    .filter((transaction) => transaction.type === TransactionType.INCOME)
+    .reduce((total, transaction) => total + transaction.amount, 0);
+
+  const expense = transactions
+    .filter((transaction) => transaction.type === TransactionType.EXPENSE)
+    .reduce((total, transaction) => total + transaction.amount, 0);
+
+  return {
+    income,
+    expense,
+    balance: income - expense,
+  };
 }

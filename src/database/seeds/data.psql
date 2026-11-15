@@ -5,7 +5,8 @@ VALUES
     ('Vivienda', 'housing'),
     ('Servicios', 'utilities'),
     ('Entretenimiento', 'entertainment'),
-    ('Otros', 'other');
+    ('Otros', 'other')
+ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO transaction_methods (name, code)
 VALUES
@@ -13,9 +14,11 @@ VALUES
     ('Tarjeta de crédito', 'credit_card'),
     ('Tarjeta débito', 'debit_card'),
     ('Transferencia', 'transfer'),
-    ('Otros', 'other');
+    ('Otros', 'other')
+ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO transaction_types (name, code)
 VALUES
     ('Ingreso', 'income'),
-    ('Gasto', 'expense');
+    ('Gasto', 'expense')
+ON CONFLICT (code) DO NOTHING;

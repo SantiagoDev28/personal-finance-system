@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TransactionService } from './application/transaction.service';
 import { TransactionController } from './infrastructure/controllers/transaction.controller';
-import { TransactionMemory } from './infrastructure/persistence/transaction.memory';
+import { TransactionPostgres } from './infrastructure/persistence/transaction.postgres';
 import { TRANSACTION_REPOSITORY } from './domain/repositories/transaction-repository.token';
 
 @Module({
@@ -10,7 +10,7 @@ import { TRANSACTION_REPOSITORY } from './domain/repositories/transaction-reposi
     TransactionService,
     {
       provide: TRANSACTION_REPOSITORY,
-      useClass: TransactionMemory,
+      useClass: TransactionPostgres,
     },
   ],
 })
