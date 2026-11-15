@@ -371,7 +371,7 @@ function movement(
         ? TransactionCategory.SALARY
         : TransactionCategory.OTHER),
     account:
-      type === TransactionType.INCOME ? Account.BANCOLOMBIA : Account.EFECTIVO,
+      type === TransactionType.INCOME ? Account.NU : Account.EFECTIVO,
     type,
     date,
   };

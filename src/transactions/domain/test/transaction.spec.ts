@@ -27,13 +27,13 @@ it('creates an income with a positive amount', () => {
     amount: 100000,
     description: 'Salario',
     category: TransactionCategory.SALARY,
-    account: Account.BANCOLOMBIA,
+    account: Account.NU,
     type: TransactionType.INCOME,
     date: new Date('2026-09-02T00:00:00.000Z'),
   });
   expect(transaction.type).toBe(TransactionType.INCOME);
   expect(transaction.amount).toBe(100000);
-  expect(transaction.account).toBe(Account.BANCOLOMBIA);
+  expect(transaction.account).toBe(Account.NU);
 });
 
 it('throws an error if the amount is not an integer', () => {
@@ -43,7 +43,7 @@ it('throws an error if the amount is not an integer', () => {
       amount: 100000.5,
       description: 'Salario',
       category: TransactionCategory.SALARY,
-      account: Account.BANCOLOMBIA,
+      account: Account.NU,
       type: TransactionType.INCOME,
       date: new Date('2026-09-02T00:00:00.000Z'),
     }),
@@ -57,7 +57,7 @@ it('throws an error if the date is not a valid date', () => {
       amount: 100000,
       description: 'Salario',
       category: TransactionCategory.SALARY,
-      account: Account.BANCOLOMBIA,
+      account: Account.NU,
       type: TransactionType.INCOME,
       date: new Date('invalid-date'),
     }),
@@ -71,7 +71,7 @@ it('throws an error if amount is not a positive integer', () => {
       amount: 0,
       description: 'Salario',
       category: TransactionCategory.SALARY,
-      account: Account.BANCOLOMBIA,
+      account: Account.NU,
       type: TransactionType.INCOME,
       date: new Date('2026-09-02T00:00:00.000Z'),
     }),

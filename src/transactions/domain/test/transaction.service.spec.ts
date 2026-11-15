@@ -141,7 +141,7 @@ describe('TransactionsService', () => {
       amount: 100000,
       description: 'Salario',
       category: TransactionCategory.SALARY,
-      account: Account.BANCOLOMBIA,
+      account: Account.NU,
       type: TransactionType.INCOME,
       date,
     });
@@ -181,7 +181,7 @@ describe('TransactionsService', () => {
       amount: 100000,
       description: 'Salario',
       category: TransactionCategory.SALARY,
-      account: Account.BANCOLOMBIA,
+      account: Account.NU,
       type: TransactionType.INCOME,
       date: originalDate,
     });
@@ -211,7 +211,7 @@ describe('TransactionsService', () => {
       amount: 100000,
       description: 'Salario',
       category: TransactionCategory.SALARY,
-      account: Account.BANCOLOMBIA,
+      account: Account.NU,
       type: TransactionType.INCOME,
       date: originalDate,
     });
@@ -300,7 +300,7 @@ describe('TransactionsService', () => {
       amount: 100000,
       description: 'Salario',
       category: TransactionCategory.SALARY,
-      account: Account.BANCOLOMBIA,
+      account: Account.NU,
       type: TransactionType.INCOME,
       date,
     });
@@ -323,7 +323,7 @@ describe('TransactionsService', () => {
         amount: 100000,
         description: 'Salario',
         category: TransactionCategory.SALARY,
-        account: Account.BANCOLOMBIA,
+        account: Account.NU,
         type: TransactionType.INCOME,
         date,
       },

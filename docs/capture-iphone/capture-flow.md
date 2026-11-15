@@ -15,7 +15,7 @@ PostgreSQL
 ✓ Registrado, solo si la respuesta trae id
 ```
 
-Nuevo gasto envía `expense` y una categoría del menú de gasto. Nuevo ingreso envía `income` y Salario, Freelance u Otros ingresos. El tipo no se pregunta: lo fija el atajo. La fecha viaja como `yyyy-MM-dd`. El cuerpo no lleva `database_id`, `page_id` ni token de Notion.
+Nuevo gasto envía `expense` y una categoría del menú de gasto. Nuevo ingreso envía `income` y Salario, Freelance, Barberia u Otros ingresos. El tipo no se pregunta: lo fija el atajo. La fecha viaja como `yyyy-MM-dd`. El cuerpo no lleva `database_id`, `page_id` ni token de Notion.
 
 Un monto cero, negativo o con decimales recibe `400`. El atajo no dice que quedó registrado y no aparece una fila.
 
@@ -27,7 +27,7 @@ Un monto cero, negativo o con decimales recibe `400`. El atajo no dice que qued�
 | --- | --- |
 | `amount` | ¿Cuánto? Entero mayor que 0 |
 | `category` | El texto del menú |
-| `account` | El texto del menú: Efectivo, Nequi, Bancolombia, Daviplata o Tarjeta crédito |
+| `account` | El texto del menú: Efectivo, Nequi, Nu, Daviplata o Tarjeta crédito |
 | `date` | Hoy, `yyyy-MM-dd` |
 | `type` | `expense` en Nuevo gasto, `income` en Nuevo ingreso |
 

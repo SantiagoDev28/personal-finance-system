@@ -30,13 +30,26 @@ it('accepts an income category with its account', async () => {
     submit({
       amount: 2000000,
       category: 'Salario',
-      account: 'Bancolombia',
+      account: 'Nu',
       type: 'income',
       date: '2026-11-15',
     }),
   ).resolves.toMatchObject({
     category: 'Salario',
-    account: 'Bancolombia',
+    account: 'Nu',
+    type: 'income',
+  });
+  await expect(
+    submit({
+      amount: 80000,
+      category: 'Barberia',
+      account: 'Nu',
+      type: 'income',
+      date: '2026-11-15',
+    }),
+  ).resolves.toMatchObject({
+    category: 'Barberia',
+    account: 'Nu',
     type: 'income',
   });
 });

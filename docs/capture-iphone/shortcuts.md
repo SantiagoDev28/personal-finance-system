@@ -107,7 +107,7 @@ Ese texto es la categoría que se guarda. Si eliges Alimentación, el cuerpo lle
 
    - Efectivo
    - Nequi
-   - Bancolombia
+   - Nu
    - Daviplata
    - Tarjeta crédito
 
@@ -264,10 +264,11 @@ Duplica el de gasto y cambia el menú, el tipo y el texto del banner.
 
    - Salario
    - Freelance
+   - Barberia
    - Otros ingresos
 
 4. La variable `Categoria` sigue siendo la burbuja **Elegir del menú**, fuera del menú.
-5. El menú **Cuenta** no se toca: Efectivo, Nequi, Bancolombia, Daviplata, Tarjeta crédito.
+5. El menú **Cuenta** no se toca: Efectivo, Nequi, Nu, Daviplata, Tarjeta crédito.
 6. En el JSON, cambia solo el tipo:
 
 ```json
@@ -292,9 +293,9 @@ El resto del cuerpo sigue con las burbujas `Valor`, `Categoria`, `Cuenta` y `Fec
 ### Probar el ingreso
 
 1. Ejecuta `💰 Nuevo ingreso`.
-2. `2000000` → **Salario** → **Bancolombia**.
+2. `2000000` → **Barberia** → **Nu**.
 3. Banner: **Ingreso registrado**, solo si la respuesta trae `id`.
-4. `GET /transactions` muestra una fila `income` con categoría `Salario` y cuenta `Bancolombia`.
+4. `GET /transactions` muestra una fila `income` con categoría `Barberia` y cuenta `Nu`.
 5. `GET /transactions/resume` cuadra con las filas, incluido el gasto de antes si sigue ahí.
 6. Notion no recibe una página por este ingreso.
 7. Reinicia el servidor y vuelve a listar: el ingreso sigue.
