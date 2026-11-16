@@ -54,8 +54,10 @@ export class TransactionMemory implements TransactionRepository {
     const { start, end } = filterDateBounds(filter);
     const matches = this.transactions.filter((transaction) => {
       const matchesType = !filter.type || transaction.type === filter.type;
+      const category =
+        filter.category === undefined ? undefined : String(filter.category);
       const matchesCategory =
-        !filter.category || transaction.category === filter.category;
+        category === undefined || transaction.category === category;
       const matchesStartDate = !start || transaction.date >= start;
       const matchesEndDate = !end || transaction.date <= end;
       return (

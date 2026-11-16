@@ -1,11 +1,19 @@
 import 'dotenv/config';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { Pool } from 'pg';
 
 import { readDatabaseConfig } from '../../src/database/database-config';
-import { TransactionService } from '../../src/transactions/application/transaction.service';
+import { createTransactionDto } from '../../src/transactions/application/dto/create-transaction.dto';
 import {
+  shortcutTransaction,
+  TransactionService,
+} from '../../src/transactions/application/transaction.service';
+import {
+  ACCOUNTS,
+  EXPENSE_CATEGORIES,
+  INCOME_CATEGORIES,
   TransactionCategory,
-  TransactionMethod,
+  Account,
   TransactionType,
 } from '../../src/transactions/domain/enums/transaction.enum';
 import { TransactionPostgres } from '../../src/transactions/infrastructure/persistence/transaction.postgres';
@@ -220,24 +228,150 @@ describe('transactions persisted in PostgreSQL', () => {
       await restartedPool.end();
     }
   });
+
+  it('stores the shortcut form and the balance stays on the rows', async () => {
+    const created = await postShortcut(service, {
+      amount: 18000,
+      category: 'Alimentación',
+      account: 'Efectivo',
+      type: 'expense',
+      date: '2026-11-15',
+    });
+
+    expect(created.id).toEqual(expect.any(String));
+    expect(created.id).not.toHaveLength(0);
+    expect(created).toMatchObject({
+      amount: 18000,
+      description: 'Alimentación',
+      category: 'Alimentación',
+      account: 'Efectivo',
+      type: TransactionType.EXPENSE,
+      date: new Date('2026-11-15T00:00:00.000Z'),
+    });
+
+    const stored = await pool.query<{
+      category: string;
+      account: string;
+      description: string;
+      date: Date;
+    }>(
+      `SELECT category, account, description, date
+       FROM transactions WHERE id = $1`,
+      [created.id],
+    );
+    expect(stored.rows[0]).toMatchObject({
+      category: 'Alimentación',
+      account: 'Efectivo',
+      description: 'Alimentación',
+    });
+    expect(stored.rows[0]?.date.toISOString()).toBe('2026-11-15T00:00:00.000Z');
+
+    const listed = await service.findAll({});
+    expect(listed).toEqual([created]);
+    expect(await service.resume()).toEqual(calculateResume(listed));
+    const current = await pool.query<{ name: string }>(
+      'SELECT current_database() AS name',
+    );
+    expect(current.rows[0]?.name).toBe(TEST_DATABASE_NAME);
+  });
+
+  it('rejects a zero, negative or decimal amount and stores nothing', async () => {
+    for (const amount of [0, -18000, 18.5]) {
+      await expect(
+        postShortcut(service, {
+          amount,
+          category: 'Alimentación',
+          account: 'Efectivo',
+          type: 'expense',
+          date: '2026-11-15',
+        }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    }
+
+    expect(await service.findAll({})).toEqual([]);
+    const stored = await pool.query<{ n: number }>(
+      'SELECT count(*)::int AS n FROM transactions',
+    );
+    expect(Number(stored.rows[0]?.n)).toBe(0);
+  });
+
+  it('stores every shortcut category and account as written', async () => {
+    const expenses = EXPENSE_CATEGORIES.map((category, index) =>
+      postShortcut(service, {
+        amount: 1000 + index,
+        category,
+        account: ACCOUNTS[index % ACCOUNTS.length],
+        type: 'expense',
+        date: '2026-11-15',
+      }),
+    );
+    const incomes = INCOME_CATEGORIES.map((category, index) =>
+      postShortcut(service, {
+        amount: 50000 + index,
+        category,
+        account: ACCOUNTS[index],
+        type: 'income',
+        date: '2026-11-15',
+      }),
+    );
+    const created = await Promise.all([...expenses, ...incomes]);
+
+    const stored = await pool.query<{ category: string; account: string }>(
+      'SELECT category, account FROM transactions ORDER BY amount ASC',
+    );
+    expect(stored.rows).toEqual(
+      created
+        .slice()
+        .sort((left, right) => left.amount - right.amount)
+        .map((transaction) => ({
+          category: transaction.category,
+          account: transaction.account,
+        })),
+    );
+    const listed = await service.findAll({});
+    expect(await service.resume()).toEqual(calculateResume(listed));
+  });
 });
+
+function postShortcut(
+  service: TransactionService,
+  body: {
+    amount: number;
+    category: string;
+    account: string;
+    type: string;
+    date: string;
+  },
+) {
+  const pipe = new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+  });
+  return pipe
+    .transform(body, { type: 'body', metatype: createTransactionDto })
+    .then((dto: createTransactionDto) =>
+      service.create(shortcutTransaction(dto)),
+    );
+}
 
 function movement(
   id: string,
   amount: number,
   type: TransactionType,
   date: Date = new Date('2026-09-02T00:00:00.000Z'),
-  category: TransactionCategory = TransactionCategory.OTHER,
+  category?: TransactionCategory,
 ) {
   return {
     id,
     amount,
     description: id,
-    category,
-    method:
-      type === TransactionType.INCOME
-        ? TransactionMethod.TRANSFER
-        : TransactionMethod.CASH,
+    category:
+      category ??
+      (type === TransactionType.INCOME
+        ? TransactionCategory.SALARY
+        : TransactionCategory.OTHER),
+    account:
+      type === TransactionType.INCOME ? Account.NU : Account.EFECTIVO,
     type,
     date,
   };

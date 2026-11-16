@@ -1,12 +1,12 @@
 # Sistema de finanzas personales
 
-El servidor NestJS ya registra movimientos en memoria: alta, lista, consulta, edición, borrado, filtros y saldo. Al reiniciar, la lista queda vacía.
+El servidor NestJS guarda el movimiento en PostgreSQL: alta, lista, consulta, edición, borrado, filtros y saldo. Al reiniciar, las filas siguen. El saldo se calcula; no es una columna.
 
-Hoy los atajos del iPhone todavía escriben en Notion. El camino que sigue es otro: el formulario del atajo hace `POST` a la API y PostgreSQL guarda el movimiento. Esa decisión está en [docs/decisions/ADR-0003-captura-directa.md](docs/decisions/ADR-0003-captura-directa.md). El alcance está en [docs/context.md](docs/context.md).
+El sprint siguiente apunta los atajos del iPhone a la API. El movimiento nuevo queda en PostgreSQL. Esa decisión está en [docs/decisions/ADR-0005-atajo-a-la-api.md](docs/decisions/ADR-0005-atajo-a-la-api.md). El alcance está en [docs/context.md](docs/context.md). Los atajos instalados hoy todavía escriben en Notion; esa guía no es el plan.
 
 ## Hub en Notion
 
-El hub **Finanzas** es un borrador privado. Ahí viven hoy los movimientos. La aplicación no lo lee: el atajo, cuando se apunte a la API, escribirá en PostgreSQL.
+El hub **Finanzas** es un borrador privado. Conserva lo que ya se capturó ahí. La aplicación no lo lee ni copia sus filas. El atajo, en el sprint siguiente, escribe en PostgreSQL.
 
 - [Finanzas (dashboard)](https://app.notion.com/p/3cff454b5630814690fec87bfbd8b82a)
 - [Captura iPhone](https://app.notion.com/p/3cff454b563081808d12d092cc269f01)
@@ -31,6 +31,7 @@ La página [Plan Financiero](https://app.notion.com/p/305f454b5630808bb33ddd0fbf
 | [docs/decisions/ADR-0002-rango-de-fechas.md](decisions/ADR-0002-rango-de-fechas.md) | `startDate` es la fecha de inicio; `endDate` llega hasta el último segundo del día |
 | [docs/decisions/ADR-0003-captura-directa.md](decisions/ADR-0003-captura-directa.md) | El atajo hace POST a la API; PostgreSQL guarda el movimiento |
 | [docs/decisions/ADR-0004-acceso-postgresql.md](decisions/ADR-0004-acceso-postgresql.md) | SQL explícito con `pg`. Sin ORM |
+| [docs/decisions/ADR-0005-atajo-a-la-api.md](decisions/ADR-0005-atajo-a-la-api.md) | El sprint siguiente apunta el atajo a la API, sin copiar Notion |
 
 ## Principios
 

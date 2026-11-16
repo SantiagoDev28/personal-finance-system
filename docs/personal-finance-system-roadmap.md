@@ -129,7 +129,7 @@ sin reescribirlo por estética.
     documentados.
 -   Los cambios están divididos en commits comprensibles.
 
-Nota de producto, noviembre 2026. Después de V0.2 el camino ya no es leer Notion. El atajo del iPhone hará `POST` con JSON a la API y PostgreSQL guardará el movimiento. El detalle está en `docs/decisions/ADR-0003-captura-directa.md`. V0.3 sigue siendo la persistencia de lo que la API ya hace en memoria.
+Nota de producto, noviembre 2026. Después de V0.2 el camino ya no es leer Notion ni copiar sus páginas. El atajo del iPhone hace `POST` con JSON a la API y PostgreSQL guarda el movimiento. La persistencia ya está. El sprint siguiente apunta el atajo: `docs/decisions/ADR-0005-atajo-a-la-api.md`.
 
 ## V0.3 --- Persistencia con PostgreSQL
 
@@ -161,9 +161,9 @@ decisiones de datos.
 -   Se prueban los flujos principales contra una base de datos de
     pruebas.
 
-**Decisión pendiente:** escoger una única herramienta de acceso a datos
-cuando esta versión lo requiera (por ejemplo, Prisma o SQL explícito).
-No introducir un ORM y un query builder sin una necesidad clara.
+**Decisión:** SQL explícito con `pg`, sin ORM. Está en
+`docs/decisions/ADR-0004-acceso-postgresql.md`. La tabla del movimiento
+se reconstruye con `src/database/migrations`.
 
 ## V0.4 --- API REST
 

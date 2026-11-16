@@ -2,7 +2,7 @@
 
 Registro de ingresos y gastos en PostgreSQL. NestJS valida cada movimiento, lo guarda, lo lista, lo edita, lo borra y calcula ingresos, gastos y saldo. El saldo no es una columna: sale de las filas. Al reiniciar el servidor, los movimientos siguen.
 
-La moneda es COP y el monto se guarda como un peso entero positivo. El tipo dice si suma o resta. La decisión está en [docs/decisions/ADR-0001-dinero-moneda-y-fecha.md](docs/decisions/ADR-0001-dinero-moneda-y-fecha.md). El camino siguiente, atajo → API → PostgreSQL, está en [docs/decisions/ADR-0003-captura-directa.md](docs/decisions/ADR-0003-captura-directa.md).
+La moneda es COP y el monto se guarda como un peso entero positivo. El tipo dice si suma o resta. La decisión está en [docs/decisions/ADR-0001-dinero-moneda-y-fecha.md](docs/decisions/ADR-0001-dinero-moneda-y-fecha.md). El sprint siguiente apunta el atajo del iPhone a esta API, como dice [docs/decisions/ADR-0005-atajo-a-la-api.md](docs/decisions/ADR-0005-atajo-a-la-api.md).
 
 ## Instalación
 
@@ -24,7 +24,7 @@ Los flujos de alta, edición, borrado, filtro, saldo y reinicio corren en otra b
 pnpm test:db
 ```
 
-Ese comando crea la base de prueba si no existe, aplica el esquema y el catálogo, y no escribe en `personal_finance`. PostgreSQL tiene que estar en marcha y el `.env` tiene que poder conectar.
+Ese comando crea la base de prueba si no existe, aplica las migraciones y no escribe en `personal_finance`. PostgreSQL tiene que estar en marcha y el `.env` tiene que poder conectar.
 
 ## Lint y formato
 
@@ -59,11 +59,10 @@ En PowerShell:
 Copy-Item .env.example .env
 ```
 
-4. Aplica el esquema y el catálogo. El `id` del movimiento es el texto que envía el API. Si la tabla se creó antes con `id` uuid, este script lo deja en texto. Volver a ejecutarlo no duplica las categorías.
+4. Aplica las migraciones. Crean la tabla del movimiento en una base vacía: `id` único, monto entero mayor que 0, tipo `income` o `expense`, categoría, cuenta y un índice por fecha. Volver a ejecutarlas no duplica la tabla. Si la tabla todavía tiene la columna `method`, la renombran a `account`.
 
 ```bash
-psql -h localhost -p 5432 -U finance -d personal_finance -f src/database/schema.sql
-psql -h localhost -p 5432 -U finance -d personal_finance -f src/database/seeds/data.psql
+pnpm db:migrate
 ```
 
 ## Arranque
@@ -76,14 +75,18 @@ Sin `.env`, o con `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USER`, `DATABASE_P
 
 Con la base creada y el `.env` presente, el servidor queda en [http://localhost:3000](http://localhost:3000). Un movimiento creado sigue en la lista después de reiniciar.
 
+El front está en [personal-finance-web](https://github.com/SantiagoDev28/personal-finance-web).
+
 ## Probar un movimiento y el saldo
+
+El cuerpo es el formulario del atajo: monto, categoría, cuenta, fecha `yyyy-MM-dd` y tipo. No hace falta `id`, `description` ni `method`. Si no viene `id`, la respuesta trae el que asigna el servidor. La fecha se guarda como el inicio de ese día en UTC, como dice [docs/decisions/ADR-0002-rango-de-fechas.md](docs/decisions/ADR-0002-rango-de-fechas.md). El concepto del movimiento es la categoría elegida.
 
 Crear un ingreso:
 
 ```bash
 curl -X POST http://localhost:3000/transactions \
   -H "Content-Type: application/json" \
-  -d "{\"id\":\"mov-1\",\"amount\":100000,\"description\":\"Salario\",\"category\":\"other\",\"method\":\"transfer\",\"type\":\"income\",\"date\":\"2026-09-02T00:00:00.000Z\"}"
+  -d "{\"amount\":100000,\"category\":\"Barberia\",\"account\":\"Nu\",\"type\":\"income\",\"date\":\"2026-11-15\"}"
 ```
 
 Crear un gasto:
@@ -91,7 +94,7 @@ Crear un gasto:
 ```bash
 curl -X POST http://localhost:3000/transactions \
   -H "Content-Type: application/json" \
-  -d "{\"id\":\"mov-2\",\"amount\":18000,\"description\":\"Almuerzo\",\"category\":\"food\",\"method\":\"cash\",\"type\":\"expense\",\"date\":\"2026-09-02T00:00:00.000Z\"}"
+  -d "{\"amount\":18000,\"category\":\"Alimentación\",\"account\":\"Efectivo\",\"type\":\"expense\",\"date\":\"2026-11-15\"}"
 ```
 
 Ver la lista y el saldo:
@@ -103,14 +106,14 @@ curl http://localhost:3000/transactions/resume
 
 Con esos dos movimientos la respuesta del saldo es ingresos `100000`, gastos `18000` y saldo `82000`.
 
-Un monto `0` responde `400` y no aparece en la lista. `category` acepta `food`, `transportation`, `housing`, `utilities`, `entertainment` u `other`. `method` acepta `cash`, `credit_card`, `debit_card`, `transfer` u `other`. `type` acepta `income` o `expense`. Un `id` repetido responde `409`.
+Un monto `0`, negativo o con decimales responde `400` y no aparece en la lista. El tipo acepta `income` o `expense`. Un gasto acepta Alimentación, Transporte, Hogar, Tecnología, Educación, Deporte, Ropa, Entretenimiento, Suscripciones u Otros. Un ingreso acepta Salario, Freelance, Barberia u Otros ingresos. La cuenta acepta Efectivo, Nequi, Nu, Daviplata o Tarjeta crédito. Esos textos se guardan tal cual. Un `id` repetido responde `409`.
 
 ## Corregir, borrar y filtrar
 
-Editar el monto del gasto:
+En la URL va el `id` que devolvió el alta. Editar el monto del gasto:
 
 ```bash
-curl -X PATCH http://localhost:3000/transactions/mov-2 \
+curl -X PATCH http://localhost:3000/transactions/{id} \
   -H "Content-Type: application/json" \
   -d "{\"amount\":20000}"
 ```
@@ -118,13 +121,13 @@ curl -X PATCH http://localhost:3000/transactions/mov-2 \
 Borrarlo:
 
 ```bash
-curl -X DELETE http://localhost:3000/transactions/mov-2
+curl -X DELETE http://localhost:3000/transactions/{id}
 ```
 
 Filtrar la lista y el saldo. `startDate` abre el día y `endDate` lo incluye hasta el último instante, como dice [docs/decisions/ADR-0002-rango-de-fechas.md](docs/decisions/ADR-0002-rango-de-fechas.md).
 
 ```bash
-curl "http://localhost:3000/transactions?type=expense&category=food&startDate=2026-09-01&endDate=2026-09-30"
+curl "http://localhost:3000/transactions?type=expense&category=Alimentación&startDate=2026-09-01&endDate=2026-09-30"
 curl "http://localhost:3000/transactions/resume?type=expense&startDate=2026-09-01&endDate=2026-09-30"
 ```
 
