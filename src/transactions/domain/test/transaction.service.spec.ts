@@ -2,7 +2,7 @@ import { TransactionService } from '../../application/transaction.service';
 import { TransactionMemory } from '../../infrastructure/persistence/transaction.memory';
 import {
   TransactionCategory,
-  TransactionMethod,
+  Account,
   TransactionType,
 } from '../enums/transaction.enum';
 
@@ -20,8 +20,8 @@ describe('TransactionsService', () => {
       id: '1',
       amount: 500,
       description: 'Test',
-      category: TransactionCategory.OTHER,
-      method: TransactionMethod.CASH,
+      category: TransactionCategory.SALARY,
+      account: Account.EFECTIVO,
       type: TransactionType.INCOME,
       date: new Date('2026-09-02T00:00:00.000Z'),
     });
@@ -30,8 +30,8 @@ describe('TransactionsService', () => {
         id: '1',
         amount: 500,
         description: 'Test',
-        category: TransactionCategory.OTHER,
-        method: TransactionMethod.CASH,
+        category: TransactionCategory.SALARY,
+        account: Account.EFECTIVO,
         type: TransactionType.INCOME,
         date: new Date('2026-09-02T00:00:00.000Z'),
       },
@@ -61,8 +61,8 @@ describe('TransactionsService', () => {
       id: '2',
       amount: 1000,
       description: 'Test',
-      category: TransactionCategory.OTHER,
-      method: TransactionMethod.CASH,
+      category: TransactionCategory.SALARY,
+      account: Account.EFECTIVO,
       type: TransactionType.INCOME,
       date: new Date('2026-09-02T00:00:00.000Z'),
     });
@@ -71,8 +71,8 @@ describe('TransactionsService', () => {
       id: '2',
       amount: 1000,
       description: 'Test',
-      category: TransactionCategory.OTHER,
-      method: TransactionMethod.CASH,
+      category: TransactionCategory.SALARY,
+      account: Account.EFECTIVO,
       type: TransactionType.INCOME,
       date: new Date('2026-09-02T00:00:00.000Z'),
     });
@@ -83,8 +83,8 @@ describe('TransactionsService', () => {
       id: 'dup',
       amount: 1000,
       description: 'Test',
-      category: TransactionCategory.OTHER,
-      method: TransactionMethod.CASH,
+      category: TransactionCategory.SALARY,
+      account: Account.EFECTIVO,
       type: TransactionType.INCOME,
       date: new Date('2026-09-02T00:00:00.000Z'),
     };
@@ -102,8 +102,8 @@ describe('TransactionsService', () => {
       id: '3',
       amount: 800,
       description: 'Test',
-      category: TransactionCategory.OTHER,
-      method: TransactionMethod.CASH,
+      category: TransactionCategory.SALARY,
+      account: Account.EFECTIVO,
       type: TransactionType.INCOME,
       date: new Date('2026-09-02T00:00:00.000Z'),
     });
@@ -112,8 +112,8 @@ describe('TransactionsService', () => {
       id: '3',
       amount: 800,
       description: 'Test',
-      category: TransactionCategory.OTHER,
-      method: TransactionMethod.CASH,
+      category: TransactionCategory.SALARY,
+      account: Account.EFECTIVO,
       type: TransactionType.INCOME,
       date: new Date('2026-09-02T00:00:00.000Z'),
     });
@@ -140,8 +140,8 @@ describe('TransactionsService', () => {
       id: '4',
       amount: 100000,
       description: 'Salario',
-      category: TransactionCategory.OTHER,
-      method: TransactionMethod.TRANSFER,
+      category: TransactionCategory.SALARY,
+      account: Account.NU,
       type: TransactionType.INCOME,
       date,
     });
@@ -150,7 +150,7 @@ describe('TransactionsService', () => {
       amount: 18000,
       description: 'Almuerzo',
       category: TransactionCategory.FOOD,
-      method: TransactionMethod.CASH,
+      account: Account.EFECTIVO,
       type: TransactionType.EXPENSE,
       date,
     });
@@ -172,7 +172,7 @@ describe('TransactionsService', () => {
       amount: 18000,
       description: 'Almuerzo',
       category: TransactionCategory.FOOD,
-      method: TransactionMethod.CASH,
+      account: Account.EFECTIVO,
       type: TransactionType.EXPENSE,
       date: originalDate,
     });
@@ -180,8 +180,8 @@ describe('TransactionsService', () => {
       id: '7',
       amount: 100000,
       description: 'Salario',
-      category: TransactionCategory.OTHER,
-      method: TransactionMethod.TRANSFER,
+      category: TransactionCategory.SALARY,
+      account: Account.NU,
       type: TransactionType.INCOME,
       date: originalDate,
     });
@@ -190,7 +190,7 @@ describe('TransactionsService', () => {
       amount: 22000,
       description: 'Cena',
       category: TransactionCategory.ENTERTAINMENT,
-      method: TransactionMethod.DEBIT_CARD,
+      account: Account.NEQUI,
       type: TransactionType.EXPENSE,
       date: updatedDate,
     });
@@ -200,7 +200,7 @@ describe('TransactionsService', () => {
       amount: 22000,
       description: 'Cena',
       category: TransactionCategory.ENTERTAINMENT,
-      method: TransactionMethod.DEBIT_CARD,
+      account: Account.NEQUI,
       type: TransactionType.EXPENSE,
       date: new Date(updatedDate),
     });
@@ -210,8 +210,8 @@ describe('TransactionsService', () => {
       id: '7',
       amount: 100000,
       description: 'Salario',
-      category: TransactionCategory.OTHER,
-      method: TransactionMethod.TRANSFER,
+      category: TransactionCategory.SALARY,
+      account: Account.NU,
       type: TransactionType.INCOME,
       date: originalDate,
     });
@@ -230,7 +230,7 @@ describe('TransactionsService', () => {
       amount: 18000,
       description: 'Almuerzo',
       category: TransactionCategory.FOOD,
-      method: TransactionMethod.CASH,
+      account: Account.EFECTIVO,
       type: TransactionType.EXPENSE,
       date,
     });
@@ -242,7 +242,7 @@ describe('TransactionsService', () => {
       amount: 22000,
       description: 'Almuerzo',
       category: TransactionCategory.FOOD,
-      method: TransactionMethod.CASH,
+      account: Account.EFECTIVO,
       type: TransactionType.EXPENSE,
       date,
     });
@@ -267,7 +267,7 @@ describe('TransactionsService', () => {
       amount: 18000,
       description: 'Almuerzo',
       category: TransactionCategory.FOOD,
-      method: TransactionMethod.CASH,
+      account: Account.EFECTIVO,
       type: TransactionType.EXPENSE,
       date,
     });
@@ -277,7 +277,7 @@ describe('TransactionsService', () => {
         amount: 0,
         description: 'Cena',
         category: TransactionCategory.ENTERTAINMENT,
-        method: TransactionMethod.DEBIT_CARD,
+        account: Account.NEQUI,
       }),
     ).rejects.toThrow('Amount must be greater than 0');
 
@@ -286,7 +286,7 @@ describe('TransactionsService', () => {
       amount: 18000,
       description: 'Almuerzo',
       category: TransactionCategory.FOOD,
-      method: TransactionMethod.CASH,
+      account: Account.EFECTIVO,
       type: TransactionType.EXPENSE,
       date,
     });
@@ -299,8 +299,8 @@ describe('TransactionsService', () => {
       id: '10',
       amount: 100000,
       description: 'Salario',
-      category: TransactionCategory.OTHER,
-      method: TransactionMethod.TRANSFER,
+      category: TransactionCategory.SALARY,
+      account: Account.NU,
       type: TransactionType.INCOME,
       date,
     });
@@ -309,7 +309,7 @@ describe('TransactionsService', () => {
       amount: 18000,
       description: 'Almuerzo',
       category: TransactionCategory.FOOD,
-      method: TransactionMethod.CASH,
+      account: Account.EFECTIVO,
       type: TransactionType.EXPENSE,
       date,
     });
@@ -322,8 +322,8 @@ describe('TransactionsService', () => {
         id: '10',
         amount: 100000,
         description: 'Salario',
-        category: TransactionCategory.OTHER,
-        method: TransactionMethod.TRANSFER,
+        category: TransactionCategory.SALARY,
+        account: Account.NU,
         type: TransactionType.INCOME,
         date,
       },
@@ -438,14 +438,18 @@ function movement(
   amount: number,
   type: TransactionType,
   date: Date,
-  category: TransactionCategory = TransactionCategory.OTHER,
+  category?: TransactionCategory,
 ) {
   return {
     id,
     amount,
     description: id,
-    category,
-    method: TransactionMethod.CASH,
+    category:
+      category ??
+      (type === TransactionType.INCOME
+        ? TransactionCategory.SALARY
+        : TransactionCategory.OTHER),
+    account: Account.EFECTIVO,
     type,
     date,
   };
@@ -464,7 +468,7 @@ async function seedOctoberRange(service: TransactionService) {
       id: 'start',
       amount: 10000,
       type: TransactionType.INCOME,
-      category: TransactionCategory.OTHER,
+      category: TransactionCategory.SALARY,
       date: '2026-10-01T00:00:00.000Z',
     },
     {
@@ -485,7 +489,7 @@ async function seedOctoberRange(service: TransactionService) {
       id: 'end-last',
       amount: 3000,
       type: TransactionType.INCOME,
-      category: TransactionCategory.FOOD,
+      category: TransactionCategory.SALARY,
       date: '2026-10-03T23:59:59.999Z',
     },
     {
@@ -503,7 +507,7 @@ async function seedOctoberRange(service: TransactionService) {
       amount: row.amount,
       description: row.id,
       category: row.category,
-      method: TransactionMethod.CASH,
+      account: Account.EFECTIVO,
       type: row.type,
       date: new Date(row.date),
     });

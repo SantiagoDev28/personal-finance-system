@@ -48,3 +48,7 @@ El orden de los sprints siguientes es el de ese dibujo, de abajo hacia arriba, p
 - Plan Financiero sigue fuera. Moneda COP, valor positivo y tipo ingreso o gasto se mantienen. La decisión de dinero y fecha sigue en [ADR 0001](ADR-0001-dinero-moneda-y-fecha.md).
 - El atajo de hoy pregunta monto, categoría y cuenta. El POST de hoy pide `id`, `amount`, `description`, `category`, `method`, `type` y `date`. Encajar el formulario en ese JSON es el paso 2, no esta decisión.
 - Hasta que exista autenticación, ese POST no se publica con datos reales. El token de Notion, mientras el atajo viejo siga vivo, permanece fuera del repositorio.
+
+## Seguimiento
+
+Noviembre 2026. El paso 1 ya está: crear, editar, borrar, filtrar y el saldo persisten en PostgreSQL, y el saldo sigue saliendo de las filas. La tabla y sus restricciones están en `src/database/migrations`. El orden de los pasos 2 y 3 lo sustituye [ADR 0005](ADR-0005-atajo-a-la-api.md): el sprint siguiente apunta el atajo a la API, y el JSON es el de ese formulario.

@@ -39,3 +39,7 @@ La aplicación Nest no se dockeriza en este paso. PostgreSQL se instala en la m�
 - Quien arranque el servidor necesita un PostgreSQL local y un `.env` completo.
 - Un movimiento creado hoy se pierde al reiniciar. La persistencia de esas operaciones es el paso posterior.
 - El cliente `pg` queda disponible para las migraciones. Esta decisión no crea la tabla.
+
+## Seguimiento
+
+La tabla del movimiento quedó en `src/database/migrations`. El arranque sigue sin crearla: hay que aplicar las migraciones. El monto es un entero mayor que 0 y el tipo solo admite `income` o `expense`, como en [ADR 0001](ADR-0001-dinero-moneda-y-fecha.md).

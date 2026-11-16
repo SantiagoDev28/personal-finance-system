@@ -8,7 +8,10 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { TransactionService } from '../../application/transaction.service';
+import {
+  shortcutTransaction,
+  TransactionService,
+} from '../../application/transaction.service';
 import { Transaction } from '../../domain/entities/transaction.entity';
 import { updateTransactionDto } from '../../application/dto/update-transaction.dto';
 import { createTransactionDto } from '../../application/dto/create-transaction.dto';
@@ -20,11 +23,7 @@ export class TransactionController {
 
   @Post()
   create(@Body() transaction: createTransactionDto): Promise<Transaction> {
-    const transactionData = {
-      ...transaction,
-      date: new Date(transaction.date),
-    };
-    return this.transactionService.create(transactionData);
+    return this.transactionService.create(shortcutTransaction(transaction));
   }
 
   @Get()
