@@ -1,0 +1,97 @@
+:root {
+  font-family: system-ui, 'Segoe UI', sans-serif;
+  color: #1c1917;
+  background: #f6f3ee;
+  line-height: 1.4;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+header p {
+  margin: 0;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  color: #78716c;
+}
+
+header h1 {
+  margin: 0.25rem 0 1.5rem;
+  font-size: 2rem;
+}
+
+.totals {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.totals article,
+ul {
+  background: #fff;
+  border-radius: 12px;
+}
+
+.totals article {
+  padding: 0.9rem 1rem;
+}
+
+.totals span,
+li span {
+  display: block;
+  color: #78716c;
+  font-size: 0.85rem;
+}
+
+.totals strong {
+  font-size: 1.15rem;
+}
+
+ul {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border-top: 1px solid #f0ebe4;
+}
+
+li:first-child {
+  border-top: 0;
+}
+
+li strong {
+  display: block;
+}
+
+.expense {
+  color: #9f1239;
+}
+
+.income {
+  color: #166534;
+}
+
+.error,
+.empty {
+  color: #78716c;
+}
+
+@media (max-width: 640px) {
+  .totals {
+    grid-template-columns: 1fr;
+  }
+}

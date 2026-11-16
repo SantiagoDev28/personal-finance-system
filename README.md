@@ -75,6 +75,14 @@ Sin `.env`, o con `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USER`, `DATABASE_P
 
 Con la base creada y el `.env` presente, el servidor queda en [http://localhost:3000](http://localhost:3000). Un movimiento creado sigue en la lista después de reiniciar.
 
+El front vive en [web/](web/) y es React con Vite. Con la API en marcha:
+
+```bash
+pnpm dev:web
+```
+
+Queda en [http://localhost:5173](http://localhost:5173). Vite reenvía `/transactions` al puerto `3000`.
+
 ## Probar un movimiento y el saldo
 
 El cuerpo es el formulario del atajo: monto, categoría, cuenta, fecha `yyyy-MM-dd` y tipo. No hace falta `id`, `description` ni `method`. Si no viene `id`, la respuesta trae el que asigna el servidor. La fecha se guarda como el inicio de ese día en UTC, como dice [docs/decisions/ADR-0002-rango-de-fechas.md](docs/decisions/ADR-0002-rango-de-fechas.md). El concepto del movimiento es la categoría elegida.
