@@ -6,6 +6,7 @@ import { FilterTransactionDto } from './dto/filter-transaction.dto';
 import type { TransactionRepository } from '../domain/repositories/transaction.repository';
 import { TRANSACTION_REPOSITORY } from '../domain/repositories/transaction-repository.token';
 import { startOfUtcDay } from '../domain/repositories/transaction-filter';
+import { cashResume } from '../domain/cash-resume';
 import {
   isAccount,
   isCategoryForType,
@@ -103,7 +104,10 @@ export class TransactionService {
     const transactions = filter
       ? await this.transactionRepository.findByFilter(filter)
       : await this.transactionRepository.findAll();
-    return balanceOf(transactions);
+    const history = filter
+      ? await historyOf(this.transactionRepository, filter)
+      : transactions;
+    return cashResume(transactions, history);
   }
 
   async delete(id: string): Promise<{ message: string }> {
@@ -112,6 +116,19 @@ export class TransactionService {
       message: `Transaction with id ${id} deleted successfully`,
     };
   }
+}
+
+async function historyOf(
+  repository: TransactionRepository,
+  filter?: FilterTransactionDto,
+): Promise<Transaction[]> {
+  if (!filter) {
+    return repository.findAll();
+  }
+  if (filter.endDate) {
+    return repository.findByFilter({ endDate: filter.endDate });
+  }
+  return repository.findAll();
 }
 
 function assertShortcut(data: {
@@ -127,18 +144,3 @@ function assertShortcut(data: {
   }
 }
 
-function balanceOf(transactions: Transaction[]) {
-  const income = transactions
-    .filter((transaction) => transaction.type === TransactionType.INCOME)
-    .reduce((total, transaction) => total + transaction.amount, 0);
-
-  const expense = transactions
-    .filter((transaction) => transaction.type === TransactionType.EXPENSE)
-    .reduce((total, transaction) => total + transaction.amount, 0);
-
-  return {
-    income,
-    expense,
-    balance: income - expense,
-  };
-}

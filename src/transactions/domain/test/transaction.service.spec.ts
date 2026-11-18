@@ -1,4 +1,5 @@
 import { TransactionService } from '../../application/transaction.service';
+import { cashResume } from '../cash-resume';
 import { TransactionMemory } from '../../infrastructure/persistence/transaction.memory';
 import {
   TransactionCategory,
@@ -126,11 +127,7 @@ describe('TransactionsService', () => {
   });
 
   it('should report zero income, expense and balance when the list is empty', async () => {
-    expect(await service.resume()).toEqual({
-      income: 0,
-      expense: 0,
-      balance: 0,
-    });
+    expect(await service.resume()).toEqual(cash(0, 0));
   });
 
   it('should subtract an expense from income', async () => {
@@ -155,11 +152,7 @@ describe('TransactionsService', () => {
       date,
     });
 
-    expect(await service.resume()).toEqual({
-      income: 100000,
-      expense: 18000,
-      balance: 82000,
-    });
+    expect(await service.resume()).toEqual(cash(100000, 18000));
     expect((await service.findById('5')).amount).toBe(18000);
   });
 
@@ -215,11 +208,7 @@ describe('TransactionsService', () => {
       type: TransactionType.INCOME,
       date: originalDate,
     });
-    expect(await service.resume()).toEqual({
-      income: 100000,
-      expense: 22000,
-      balance: 78000,
-    });
+    expect(await service.resume()).toEqual(cash(100000, 22000));
   });
 
   it('should update only the fields sent in the body', async () => {
@@ -246,11 +235,7 @@ describe('TransactionsService', () => {
       type: TransactionType.EXPENSE,
       date,
     });
-    expect(await service.resume()).toEqual({
-      income: 0,
-      expense: 22000,
-      balance: -22000,
-    });
+    expect(await service.resume()).toEqual(cash(0, 22000));
   });
 
   it('should throw when updating a transaction that does not exist', async () => {
@@ -331,11 +316,7 @@ describe('TransactionsService', () => {
     await expect(service.findById('11')).rejects.toThrow(
       'Transaction with id 11 not found',
     );
-    expect(await service.resume()).toEqual({
-      income: 100000,
-      expense: 0,
-      balance: 100000,
-    });
+    expect(await service.resume()).toEqual(cash(100000, 0));
   });
 
   it('should throw when deleting a transaction that does not exist', async () => {
@@ -355,17 +336,9 @@ describe('TransactionsService', () => {
       'end-afternoon',
       'end-last',
     ]);
-    expect(await service.resume(filter)).toEqual({
-      income: 13000,
-      expense: 6000,
-      balance: 7000,
-    });
+    expect(await service.resume(filter)).toEqual(cash(13000, 6000));
     expect(await service.resume(filter)).toEqual(calculateResume(listed));
-    expect(await service.resume()).toEqual({
-      income: 13000,
-      expense: 12000,
-      balance: 1000,
-    });
+    expect(await service.resume()).toEqual(cash(13000, 12000));
   });
 
   it('should keep an endDate that includes a time at that instant', async () => {
@@ -378,11 +351,7 @@ describe('TransactionsService', () => {
     expect(
       (await service.findAll(filter)).map((transaction) => transaction.id),
     ).toEqual(['start', 'middle']);
-    expect(await service.resume(filter)).toEqual({
-      income: 10000,
-      expense: 4000,
-      balance: 6000,
-    });
+    expect(await service.resume(filter)).toEqual(cash(10000, 4000));
   });
 
   it('should return an empty list and a zero resume when the range has no transactions', async () => {
@@ -390,11 +359,7 @@ describe('TransactionsService', () => {
     const filter = { startDate: '2026-11-01', endDate: '2026-11-02' };
 
     expect(await service.findAll(filter)).toEqual([]);
-    expect(await service.resume(filter)).toEqual({
-      income: 0,
-      expense: 0,
-      balance: 0,
-    });
+    expect(await service.resume(filter)).toEqual(cash(0, 0));
     expect(await service.resume()).toEqual(
       calculateResume(await service.findAll({})),
     );
@@ -411,26 +376,26 @@ describe('TransactionsService', () => {
     const listed = await service.findAll(filter);
 
     expect(listed.map((transaction) => transaction.id)).toEqual(['middle']);
-    expect(await service.resume(filter)).toEqual({
-      income: 0,
-      expense: 4000,
-      balance: -4000,
-    });
+    expect(await service.resume(filter)).toEqual(cash(0, 4000));
     expect(await service.resume(filter)).toEqual(calculateResume(listed));
   });
 });
 
-function calculateResume(
-  transactions: { type: TransactionType; amount: number }[],
-) {
-  const income = transactions
-    .filter((transaction) => transaction.type === TransactionType.INCOME)
-    .reduce((total, transaction) => total + transaction.amount, 0);
-  const expense = transactions
-    .filter((transaction) => transaction.type === TransactionType.EXPENSE)
-    .reduce((total, transaction) => total + transaction.amount, 0);
+function cash(income: number, cashExpense: number) {
+  return {
+    income,
+    cashExpense,
+    cardExpense: 0,
+    cardPayments: 0,
+    balance: income - cashExpense,
+    cardOutstanding: 0,
+  };
+}
 
-  return { income, expense, balance: income - expense };
+function calculateResume(
+  transactions: { type: TransactionType; amount: number; account: string }[],
+) {
+  return cashResume(transactions, transactions);
 }
 
 function movement(
