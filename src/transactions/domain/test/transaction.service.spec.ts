@@ -429,6 +429,34 @@ describe('TransactionsService', () => {
       ).map((transaction) => transaction.id),
     ).toEqual(['cash-food', 'market']);
   });
+
+  it('filters the list by account', async () => {
+    const date = new Date('2026-11-03T00:00:00.000Z');
+    await service.create({
+      id: 'nu',
+      amount: 18000,
+      description: 'Almuerzo',
+      category: TransactionCategory.FOOD,
+      account: Account.NU,
+      type: TransactionType.EXPENSE,
+      date,
+    });
+    await service.create({
+      id: 'cash',
+      amount: 5000,
+      description: 'Bus',
+      category: TransactionCategory.TRANSPORTATION,
+      account: Account.EFECTIVO,
+      type: TransactionType.EXPENSE,
+      date,
+    });
+
+    expect(
+      (await service.findAll({ account: Account.NU })).map(
+        (transaction) => transaction.id,
+      ),
+    ).toEqual(['nu']);
+  });
 });
 
 function cash(income: number, cashExpense: number) {

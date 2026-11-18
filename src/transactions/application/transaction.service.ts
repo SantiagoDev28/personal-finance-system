@@ -29,6 +29,7 @@ export type NewTransaction = {
 export function shortcutTransaction(body: {
   id?: string;
   amount: number;
+  description?: string;
   category: string;
   account: string;
   type: TransactionType;
@@ -37,6 +38,7 @@ export function shortcutTransaction(body: {
   return {
     id: body.id,
     amount: body.amount,
+    description: body.description,
     category: body.category,
     account: body.account,
     type: body.type,

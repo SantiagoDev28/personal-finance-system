@@ -129,6 +129,10 @@ export class TransactionPostgres implements TransactionRepository {
       values.push(filter.category);
       clauses.push(`t.category = $${values.length}`);
     }
+    if (filter.account) {
+      values.push(filter.account);
+      clauses.push(`t.account = $${values.length}`);
+    }
     if (start) {
       values.push(start);
       clauses.push(`t.date >= $${values.length}`);
