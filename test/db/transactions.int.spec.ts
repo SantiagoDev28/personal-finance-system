@@ -17,6 +17,7 @@ import {
   TransactionType,
 } from '../../src/transactions/domain/enums/transaction.enum';
 import { cashResume } from '../../src/transactions/domain/cash-resume';
+import { CardPaymentPostgres } from '../../src/card-payments/infrastructure/persistence/card-payment.postgres';
 import { TransactionPostgres } from '../../src/transactions/infrastructure/persistence/transaction.postgres';
 import {
   emptyTransactions,
@@ -32,7 +33,11 @@ describe('transactions persisted in PostgreSQL', () => {
 
   beforeAll(async () => {
     pool = await openTestDatabase();
-    service = new TransactionService(new TransactionPostgres(pool));
+    const transactions = new TransactionPostgres(pool);
+    service = new TransactionService(
+      transactions,
+      new CardPaymentPostgres(pool),
+    );
     daily = new Pool({
       ...readDatabaseConfig(process.env),
       connectionTimeoutMillis: 3000,
@@ -206,6 +211,7 @@ describe('transactions persisted in PostgreSQL', () => {
     try {
       const restarted = new TransactionService(
         new TransactionPostgres(restartedPool),
+        new CardPaymentPostgres(restartedPool),
       );
       expect(await restarted.findById('mov-restart')).toEqual(created);
       expect(await restarted.resume()).toEqual(cash(45000, 0));
@@ -355,8 +361,7 @@ function movement(
       (type === TransactionType.INCOME
         ? TransactionCategory.SALARY
         : TransactionCategory.OTHER),
-    account:
-      type === TransactionType.INCOME ? Account.NU : Account.EFECTIVO,
+    account: type === TransactionType.INCOME ? Account.NU : Account.EFECTIVO,
     type,
     date,
   };

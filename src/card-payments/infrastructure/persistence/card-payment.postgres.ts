@@ -69,25 +69,46 @@ export class CardPaymentPostgres implements CardPaymentRepository {
   }
 
   async update(payment: CardPayment): Promise<CardPayment> {
-    const result = await this.pool.query(
-      `
-      UPDATE card_payments
-      SET
-        amount = $2,
-        source_account = $3,
-        card_account = $4,
-        description = $5,
-        date = $6
-      WHERE id = $1
-      `,
-      this.bound(payment),
-    );
-    if ((result.rowCount ?? 0) === 0) {
-      throw new NotFoundException(
-        `Card payment with id ${payment.id} not found`,
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      await lockLedger(client);
+      const previous = await client.query<{ amount: string }>(
+        'SELECT amount FROM card_payments WHERE id = $1',
+        [payment.id],
       );
+      if ((previous.rowCount ?? 0) === 0) {
+        throw new NotFoundException(
+          `Card payment with id ${payment.id} not found`,
+        );
+      }
+      const outstanding = await readOutstanding(client);
+      const next =
+        outstanding + Number(previous.rows[0]?.amount ?? 0) - payment.amount;
+      if (next < 0) {
+        throw new BadRequestException('Card outstanding would be below zero');
+      }
+      await client.query(
+        `
+        UPDATE card_payments
+        SET
+          amount = $2,
+          source_account = $3,
+          card_account = $4,
+          description = $5,
+          date = $6
+        WHERE id = $1
+        `,
+        this.bound(payment),
+      );
+      await client.query('COMMIT');
+      return payment;
+    } catch (error) {
+      await rollback(client);
+      throw error;
+    } finally {
+      client.release();
     }
-    return payment;
   }
 
   findAll(): Promise<CardPayment[]> {

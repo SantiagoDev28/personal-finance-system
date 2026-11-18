@@ -6,7 +6,9 @@ import { FilterTransactionDto } from './dto/filter-transaction.dto';
 import type { TransactionRepository } from '../domain/repositories/transaction.repository';
 import { TRANSACTION_REPOSITORY } from '../domain/repositories/transaction-repository.token';
 import { startOfUtcDay } from '../domain/repositories/transaction-filter';
-import { cashResume } from '../domain/cash-resume';
+import { CARD_PAYMENT_REPOSITORY } from '../../card-payments/domain/repositories/card-payment-repository.token';
+import type { CardPaymentRepository } from '../../card-payments/domain/repositories/card-payment.repository';
+import { cardDebt, cashResume } from '../domain/cash-resume';
 import {
   isAccount,
   isCategoryForType,
@@ -46,6 +48,8 @@ export class TransactionService {
   constructor(
     @Inject(TRANSACTION_REPOSITORY)
     private readonly transactionRepository: TransactionRepository,
+    @Inject(CARD_PAYMENT_REPOSITORY)
+    private readonly cardPayments: CardPaymentRepository,
   ) {}
 
   async create(transaction: NewTransaction): Promise<Transaction> {
@@ -89,6 +93,7 @@ export class TransactionService {
           ? new Date(data.date)
           : existingTransaction.date,
     });
+    await this.assertOutstanding(existingTransaction, updatedTransaction);
     return this.transactionRepository.update(updatedTransaction);
   }
 
@@ -111,10 +116,26 @@ export class TransactionService {
   }
 
   async delete(id: string): Promise<{ message: string }> {
+    const existing = await this.transactionRepository.findById(id);
+    await this.assertOutstanding(existing, null);
     await this.transactionRepository.delete(id);
     return {
       message: `Transaction with id ${id} deleted successfully`,
     };
+  }
+
+  private async assertOutstanding(
+    before: Transaction,
+    after: Transaction | null,
+  ): Promise<void> {
+    const movements = await this.transactionRepository.findAll();
+    const payments = await this.cardPayments.findAll();
+    const outstanding = cashResume([], movements, [], payments).cardOutstanding;
+    const next =
+      outstanding - cardDebt(before) + (after === null ? 0 : cardDebt(after));
+    if (next < 0) {
+      throw new BadRequestException('Card outstanding would be below zero');
+    }
   }
 }
 
@@ -143,4 +164,3 @@ function assertShortcut(data: {
     throw new BadRequestException('Category is not valid for this type');
   }
 }
-

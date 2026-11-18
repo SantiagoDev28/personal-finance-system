@@ -1,5 +1,6 @@
 import { TransactionService } from '../../application/transaction.service';
 import { cashResume } from '../cash-resume';
+import { CardPaymentMemory } from '../../../card-payments/infrastructure/persistence/card-payment.memory';
 import { TransactionMemory } from '../../infrastructure/persistence/transaction.memory';
 import {
   TransactionCategory,
@@ -13,7 +14,7 @@ describe('TransactionsService', () => {
 
   beforeEach(() => {
     memory = new TransactionMemory();
-    service = new TransactionService(memory);
+    service = new TransactionService(memory, new CardPaymentMemory());
   });
 
   it('should list transactions', async () => {

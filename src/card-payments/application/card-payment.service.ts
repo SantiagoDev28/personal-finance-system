@@ -68,6 +68,10 @@ export class CardPaymentService {
       description: data.description ?? existing.description,
       date: data.date !== undefined ? startOfUtcDay(data.date) : existing.date,
     });
+    const increase = updated.amount - existing.amount;
+    if (increase > 0) {
+      await this.assertFits(increase);
+    }
     return this.cardPayments.update(updated);
   }
 

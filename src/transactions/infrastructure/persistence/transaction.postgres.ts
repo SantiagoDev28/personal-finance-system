@@ -1,12 +1,18 @@
 import {
+  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Pool } from 'pg';
+import { Pool, PoolClient } from 'pg';
 
 import { DATABASE_POOL } from '../../../database/database.module';
+import {
+  readOutstanding,
+  rollback,
+} from '../../../card-payments/infrastructure/persistence/card-ledger';
+import { cardDebt } from '../../domain/cash-resume';
 import { Transaction } from '../../domain/entities/transaction.entity';
 import {
   TransactionFilter,
@@ -57,26 +63,38 @@ export class TransactionPostgres implements TransactionRepository {
   }
 
   async update(transaction: Transaction): Promise<Transaction> {
-    const result = await this.pool.query(
-      `
-      UPDATE transactions
-      SET
-        amount = $2,
-        description = $3,
-        date = $4,
-        category = $5,
-        account = $6,
-        type = $7
-      WHERE id = $1
-      `,
-      this.bound(transaction),
-    );
-    if ((result.rowCount ?? 0) === 0) {
-      throw new NotFoundException(
-        `Transaction with id ${transaction.id} not found`,
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      await lockLedger(client);
+      const previous = await this.previousDebt(client, transaction.id);
+      await this.assertNextOutstanding(
+        client,
+        previous.debt,
+        cardDebt(transaction),
       );
+      await client.query(
+        `
+        UPDATE transactions
+        SET
+          amount = $2,
+          description = $3,
+          date = $4,
+          category = $5,
+          account = $6,
+          type = $7
+        WHERE id = $1
+        `,
+        this.bound(transaction),
+      );
+      await client.query('COMMIT');
+      return transaction;
+    } catch (error) {
+      await rollback(client);
+      throw error;
+    } finally {
+      client.release();
     }
-    return transaction;
   }
 
   findAll(): Promise<Transaction[]> {
@@ -125,14 +143,60 @@ export class TransactionPostgres implements TransactionRepository {
   }
 
   async delete(id: string): Promise<string> {
-    const result = await this.pool.query(
-      'DELETE FROM transactions WHERE id = $1',
-      [id],
-    );
-    if ((result.rowCount ?? 0) === 0) {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      await lockLedger(client);
+      const previous = await this.previousDebt(client, id);
+      await this.assertNextOutstanding(client, previous.debt, 0);
+      const result = await client.query(
+        'DELETE FROM transactions WHERE id = $1',
+        [id],
+      );
+      if ((result.rowCount ?? 0) === 0) {
+        throw new NotFoundException(`Transaction with id ${id} not found`);
+      }
+      await client.query('COMMIT');
+      return `Successfully deleted transaction with id ${id}`;
+    } catch (error) {
+      await rollback(client);
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  private async previousDebt(
+    client: PoolClient,
+    id: string,
+  ): Promise<{ debt: number }> {
+    const previous = await client.query<{
+      amount: string;
+      account: string;
+      type: string;
+    }>('SELECT amount, account, type FROM transactions WHERE id = $1', [id]);
+    const row = previous.rows[0];
+    if (!row) {
       throw new NotFoundException(`Transaction with id ${id} not found`);
     }
-    return `Successfully deleted transaction with id ${id}`;
+    return {
+      debt: cardDebt({
+        amount: Number(row.amount),
+        account: row.account,
+        type: row.type,
+      }),
+    };
+  }
+
+  private async assertNextOutstanding(
+    client: PoolClient,
+    previousDebt: number,
+    nextDebt: number,
+  ): Promise<void> {
+    const outstanding = await readOutstanding(client);
+    if (outstanding - previousDebt + nextDebt < 0) {
+      throw new BadRequestException('Card outstanding would be below zero');
+    }
   }
 
   private bound(transaction: Transaction): unknown[] {
@@ -157,6 +221,11 @@ export class TransactionPostgres implements TransactionRepository {
     );
     return result.rows.map(mapRowToTransaction);
   }
+}
+
+async function lockLedger(client: PoolClient): Promise<void> {
+  await client.query('LOCK TABLE transactions IN SHARE ROW EXCLUSIVE MODE');
+  await client.query('LOCK TABLE card_payments IN SHARE ROW EXCLUSIVE MODE');
 }
 
 function isUniqueViolation(error: unknown): boolean {

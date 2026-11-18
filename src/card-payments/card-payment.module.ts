@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TransactionModule } from '../transactions/transaction.module';
 import { CardPaymentService } from './application/card-payment.service';
 import { CARD_PAYMENT_REPOSITORY } from './domain/repositories/card-payment-repository.token';
@@ -6,7 +6,7 @@ import { CardPaymentController } from './infrastructure/controllers/card-payment
 import { CardPaymentPostgres } from './infrastructure/persistence/card-payment.postgres';
 
 @Module({
-  imports: [TransactionModule],
+  imports: [forwardRef(() => TransactionModule)],
   controllers: [CardPaymentController],
   providers: [
     CardPaymentService,
