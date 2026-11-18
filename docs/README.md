@@ -32,6 +32,7 @@ La página [Plan Financiero](https://app.notion.com/p/305f454b5630808bb33ddd0fbf
 | [docs/decisions/ADR-0003-captura-directa.md](decisions/ADR-0003-captura-directa.md) | El atajo hace POST a la API; PostgreSQL guarda el movimiento |
 | [docs/decisions/ADR-0004-acceso-postgresql.md](decisions/ADR-0004-acceso-postgresql.md) | SQL explícito con `pg`. Sin ORM |
 | [docs/decisions/ADR-0005-atajo-a-la-api.md](decisions/ADR-0005-atajo-a-la-api.md) | El sprint siguiente apunta el atajo a la API, sin copiar Notion |
+| [docs/decisions/ADR-0006-abono-tarjeta.md](decisions/ADR-0006-abono-tarjeta.md) | La compra con tarjeta no mueve el saldo de caja; el abono sí |
 
 ## Principios
 
