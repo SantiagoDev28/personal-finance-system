@@ -11,6 +11,7 @@ import type { CardPaymentRepository } from '../../card-payments/domain/repositor
 import { cardDebt, cashResume } from '../domain/cash-resume';
 import {
   isAccount,
+  isCashAccount,
   isCategoryForType,
   TransactionType,
 } from '../domain/enums/transaction.enum';
@@ -112,7 +113,11 @@ export class TransactionService {
     const history = filter
       ? await historyOf(this.transactionRepository, filter)
       : transactions;
-    return cashResume(transactions, history);
+    const payments = await this.flowPayments(filter);
+    const historyPayments = filter?.endDate
+      ? await this.cardPayments.findByFilter({ endDate: filter.endDate })
+      : await this.cardPayments.findAll();
+    return cashResume(transactions, history, payments, historyPayments);
   }
 
   async delete(id: string): Promise<{ message: string }> {
@@ -136,6 +141,23 @@ export class TransactionService {
     if (next < 0) {
       throw new BadRequestException('Card outstanding would be below zero');
     }
+  }
+
+  private flowPayments(filter?: FilterTransactionDto) {
+    if (!filter) {
+      return this.cardPayments.findAll();
+    }
+    if (filter.category || filter.type) {
+      return Promise.resolve([]);
+    }
+    if (filter.account && !isCashAccount(filter.account)) {
+      return Promise.resolve([]);
+    }
+    return this.cardPayments.findByFilter({
+      sourceAccount: filter.account,
+      startDate: filter.startDate,
+      endDate: filter.endDate,
+    });
   }
 }
 
