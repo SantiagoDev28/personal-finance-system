@@ -379,6 +379,55 @@ describe('TransactionsService', () => {
     expect(await service.resume(filter)).toEqual(cash(0, 4000));
     expect(await service.resume(filter)).toEqual(calculateResume(listed));
   });
+
+  it('keeps a card purchase out of the cash balance and in its category', async () => {
+    const date = new Date('2026-11-03T00:00:00.000Z');
+    await service.create({
+      id: 'salary',
+      amount: 100000,
+      description: 'Salario',
+      category: TransactionCategory.SALARY,
+      account: Account.NU,
+      type: TransactionType.INCOME,
+      date,
+    });
+    await service.create({
+      id: 'market',
+      amount: 100000,
+      description: 'Mercado',
+      category: TransactionCategory.FOOD,
+      account: Account.TARJETA_CREDITO,
+      type: TransactionType.EXPENSE,
+      date,
+    });
+    await service.create({
+      id: 'cash-food',
+      amount: 18000,
+      description: 'Almuerzo',
+      category: TransactionCategory.FOOD,
+      account: Account.NU,
+      type: TransactionType.EXPENSE,
+      date,
+    });
+
+    expect(await service.resume()).toEqual({
+      income: 100000,
+      cashExpense: 18000,
+      cardExpense: 100000,
+      cardPayments: 0,
+      balance: 82000,
+      cardOutstanding: 100000,
+    });
+    expect(
+      (
+        await service.findAll({
+          category: TransactionCategory.FOOD,
+          startDate: '2026-11-01',
+          endDate: '2026-11-30',
+        })
+      ).map((transaction) => transaction.id),
+    ).toEqual(['cash-food', 'market']);
+  });
 });
 
 function cash(income: number, cashExpense: number) {
