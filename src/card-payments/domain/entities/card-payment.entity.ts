@@ -18,7 +18,7 @@ export class CardPayment {
     id: string;
     amount: number;
     sourceAccount: string;
-    cardAccount?: Account;
+    cardAccount?: string;
     description: string;
     date: Date;
   }): CardPayment {
@@ -34,8 +34,9 @@ export class CardPayment {
     if (!isCashAccount(data.sourceAccount)) {
       throw new BadRequestException('Source account must be a cash account');
     }
-    const cardAccount = data.cardAccount ?? Account.TARJETA_CREDITO;
-    if (cardAccount !== Account.TARJETA_CREDITO) {
+    const expectedCard: string = Account.TARJETA_CREDITO;
+    const cardAccount = data.cardAccount ?? expectedCard;
+    if (cardAccount !== expectedCard) {
       throw new BadRequestException('Card account is not valid');
     }
     if (Number.isNaN(data.date.getTime())) {

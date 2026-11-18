@@ -10,20 +10,21 @@ export type CashResume = {
 };
 
 type Movement = {
-  type: TransactionType;
+  type: string;
   amount: number;
-  account: Account;
+  account: string;
 };
+
+const incomeType: string = TransactionType.INCOME;
+const expenseType: string = TransactionType.EXPENSE;
+const cardAccount: string = Account.TARJETA_CREDITO;
 
 type Payment = {
   amount: number;
 };
 
 export function cardDebt(movement: Movement): number {
-  if (
-    movement.type === TransactionType.EXPENSE &&
-    movement.account === Account.TARJETA_CREDITO
-  ) {
+  if (movement.type === expenseType && movement.account === cardAccount) {
     return movement.amount;
   }
   return 0;
@@ -35,14 +36,10 @@ export function cashResume(
   payments: Payment[] = [],
   historyPayments: Payment[] = [],
 ): CashResume {
-  const income = sum(
-    movements,
-    (movement) => movement.type === TransactionType.INCOME,
-  );
+  const income = sum(movements, (movement) => movement.type === incomeType);
   const cashExpense = sum(
     movements,
-    (movement) =>
-      movement.type === TransactionType.EXPENSE && cardDebt(movement) === 0,
+    (movement) => movement.type === expenseType && cardDebt(movement) === 0,
   );
   const cardExpense = sum(movements, (movement) => cardDebt(movement) > 0);
   const cardPayments = payments.reduce(
