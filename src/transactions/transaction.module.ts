@@ -13,5 +13,6 @@ import { TRANSACTION_REPOSITORY } from './domain/repositories/transaction-reposi
       useClass: TransactionPostgres,
     },
   ],
+  exports: [TRANSACTION_REPOSITORY],
 })
 export class TransactionModule {}
