@@ -10,9 +10,9 @@ export type CashResume = {
 };
 
 type Movement = {
-  type: string;
+  type: TransactionType;
   amount: number;
-  account: string;
+  account: Account;
 };
 
 type Payment = {

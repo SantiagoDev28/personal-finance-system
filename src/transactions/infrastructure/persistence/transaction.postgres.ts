@@ -13,6 +13,7 @@ import {
   rollback,
 } from '../../../card-payments/infrastructure/persistence/card-ledger';
 import { cardDebt } from '../../domain/cash-resume';
+import { Account, TransactionType } from '../../domain/enums/transaction.enum';
 import { Transaction } from '../../domain/entities/transaction.entity';
 import {
   TransactionFilter,
@@ -186,8 +187,8 @@ export class TransactionPostgres implements TransactionRepository {
     return {
       debt: cardDebt({
         amount: Number(row.amount),
-        account: row.account,
-        type: row.type,
+        account: row.account as Account,
+        type: row.type as TransactionType,
       }),
     };
   }

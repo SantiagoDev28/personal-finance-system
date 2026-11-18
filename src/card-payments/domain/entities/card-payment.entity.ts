@@ -18,7 +18,7 @@ export class CardPayment {
     id: string;
     amount: number;
     sourceAccount: string;
-    cardAccount?: string;
+    cardAccount?: Account;
     description: string;
     date: Date;
   }): CardPayment {
