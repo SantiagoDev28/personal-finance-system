@@ -25,6 +25,12 @@ it('accepts the shortcut form without id, description or method', async () => {
   await expect(submit(shortcut)).resolves.toMatchObject(shortcut);
 });
 
+it('keeps a description when the web sends the concept', async () => {
+  await expect(
+    submit({ ...shortcut, description: 'Mercado' }),
+  ).resolves.toMatchObject({ description: 'Mercado' });
+});
+
 it('accepts an income category with its account', async () => {
   await expect(
     submit({

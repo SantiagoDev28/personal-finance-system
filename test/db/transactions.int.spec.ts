@@ -16,6 +16,8 @@ import {
   Account,
   TransactionType,
 } from '../../src/transactions/domain/enums/transaction.enum';
+import { cashResume } from '../../src/transactions/domain/cash-resume';
+import { CardPaymentPostgres } from '../../src/card-payments/infrastructure/persistence/card-payment.postgres';
 import { TransactionPostgres } from '../../src/transactions/infrastructure/persistence/transaction.postgres';
 import {
   emptyTransactions,
@@ -31,7 +33,11 @@ describe('transactions persisted in PostgreSQL', () => {
 
   beforeAll(async () => {
     pool = await openTestDatabase();
-    service = new TransactionService(new TransactionPostgres(pool));
+    const transactions = new TransactionPostgres(pool);
+    service = new TransactionService(
+      transactions,
+      new CardPaymentPostgres(pool),
+    );
     daily = new Pool({
       ...readDatabaseConfig(process.env),
       connectionTimeoutMillis: 3000,
@@ -102,11 +108,7 @@ describe('transactions persisted in PostgreSQL', () => {
 
     const updated = await service.update('mov-9', { amount: 22000 });
     expect(updated.amount).toBe(22000);
-    expect(await service.resume()).toEqual({
-      income: 0,
-      expense: 22000,
-      balance: -22000,
-    });
+    expect(await service.resume()).toEqual(cash(0, 22000));
 
     await expect(
       service.update('mov-9', {
@@ -140,11 +142,7 @@ describe('transactions persisted in PostgreSQL', () => {
 
     const remaining = await service.findAll({});
     expect(remaining.map((transaction) => transaction.id)).toEqual(['mov-10']);
-    expect(await service.resume()).toEqual({
-      income: 100000,
-      expense: 0,
-      balance: 100000,
-    });
+    expect(await service.resume()).toEqual(cash(100000, 0));
     expect(await service.resume()).toEqual(calculateResume(remaining));
   });
 
@@ -194,11 +192,7 @@ describe('transactions persisted in PostgreSQL', () => {
     const listed = await service.findAll(filter);
 
     expect(listed.map((transaction) => transaction.id)).toEqual(['middle']);
-    expect(await service.resume(filter)).toEqual({
-      income: 0,
-      expense: 4000,
-      balance: -4000,
-    });
+    expect(await service.resume(filter)).toEqual(cash(0, 4000));
     expect(await service.resume(filter)).toEqual(calculateResume(listed));
     expect(await service.resume()).toEqual(
       calculateResume(await service.findAll({})),
@@ -217,13 +211,10 @@ describe('transactions persisted in PostgreSQL', () => {
     try {
       const restarted = new TransactionService(
         new TransactionPostgres(restartedPool),
+        new CardPaymentPostgres(restartedPool),
       );
       expect(await restarted.findById('mov-restart')).toEqual(created);
-      expect(await restarted.resume()).toEqual({
-        income: 45000,
-        expense: 0,
-        balance: 45000,
-      });
+      expect(await restarted.resume()).toEqual(cash(45000, 0));
     } finally {
       await restartedPool.end();
     }
@@ -370,21 +361,25 @@ function movement(
       (type === TransactionType.INCOME
         ? TransactionCategory.SALARY
         : TransactionCategory.OTHER),
-    account:
-      type === TransactionType.INCOME ? Account.NU : Account.EFECTIVO,
+    account: type === TransactionType.INCOME ? Account.NU : Account.EFECTIVO,
     type,
     date,
   };
 }
 
+function cash(income: number, cashExpense: number) {
+  return {
+    income,
+    cashExpense,
+    cardExpense: 0,
+    cardPayments: 0,
+    balance: income - cashExpense,
+    cardOutstanding: 0,
+  };
+}
+
 function calculateResume(
-  transactions: { type: TransactionType; amount: number }[],
+  transactions: { type: TransactionType; amount: number; account: string }[],
 ) {
-  const income = transactions
-    .filter((transaction) => transaction.type === TransactionType.INCOME)
-    .reduce((total, transaction) => total + transaction.amount, 0);
-  const expense = transactions
-    .filter((transaction) => transaction.type === TransactionType.EXPENSE)
-    .reduce((total, transaction) => total + transaction.amount, 0);
-  return { income, expense, balance: income - expense };
+  return cashResume(transactions, transactions);
 }

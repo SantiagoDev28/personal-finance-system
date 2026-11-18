@@ -53,6 +53,11 @@ export class createTransactionDto {
   @IsNotEmpty()
   id?: string;
 
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  description?: string;
+
   @IsInt()
   @IsPositive()
   amount!: number;

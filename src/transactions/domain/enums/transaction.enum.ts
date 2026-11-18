@@ -56,8 +56,19 @@ export const ACCOUNTS = [
   Account.TARJETA_CREDITO,
 ] as const;
 
+export const CASH_ACCOUNTS = [
+  Account.EFECTIVO,
+  Account.NEQUI,
+  Account.NU,
+  Account.DAVIPLATA,
+] as const;
+
 export function isAccount(value: string): boolean {
   return (ACCOUNTS as readonly string[]).includes(value);
+}
+
+export function isCashAccount(value: string): boolean {
+  return (CASH_ACCOUNTS as readonly string[]).includes(value);
 }
 
 export function isKnownCategory(value: string): boolean {

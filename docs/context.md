@@ -28,7 +28,7 @@ La dirección de este tramo es el teléfono hacia la API, y la API hacia su base
 - Moneda **COP**. Valor siempre positivo. El tipo dice si es ingreso o gasto.
 - Catálogo corto. Subcategorías quedan fuera.
 - Concepto puede faltar en la captura rápida. La fecha es el día del movimiento.
-- El saldo y, más adelante, el presupuesto del mes se calculan desde los movimientos guardados.
+- El saldo de caja y, más adelante, el presupuesto del mes se calculan desde lo guardado. Una compra en Tarjeta crédito entra en su categoría y en el pendiente; no baja el saldo de caja. El abono, en otra tabla, es la salida de la cuenta de caja. La decisión está en [decisions/ADR-0006-abono-tarjeta.md](decisions/ADR-0006-abono-tarjeta.md).
 - Plan Financiero permanece fuera.
 
 La forma de las bases de Notion sigue descrita en [domain/data-model.md](domain/data-model.md). Es el mapa del hub actual, no el contrato del `POST`.

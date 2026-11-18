@@ -104,7 +104,25 @@ curl http://localhost:3000/transactions
 curl http://localhost:3000/transactions/resume
 ```
 
-Con esos dos movimientos la respuesta del saldo es ingresos `100000`, gastos `18000` y saldo `82000`.
+Con esos dos movimientos la respuesta del saldo trae ingresos `100000`, gasto de caja `18000` y saldo `82000`. El gasto en tarjeta y los abonos van en cero.
+
+Una compra en Tarjeta crédito entra en su categoría y no baja el saldo. El abono es otro recurso. Sale de una cuenta de caja y baja el saldo en la fecha del pago:
+
+```bash
+curl -X POST http://localhost:3000/card-payments \
+  -H "Content-Type: application/json" \
+  -d "{\"amount\":18000,\"sourceAccount\":\"Nu\",\"date\":\"2026-12-05\"}"
+```
+
+`GET /transactions/resume` responde `income`, `cashExpense`, `cardExpense`, `cardPayments`, `balance` y `cardOutstanding`. `balance` es el saldo de caja. `cardOutstanding` es el pendiente hasta `endDate`.
+
+La salida de una cuenta junta sus movimientos y sus abonos:
+
+```bash
+curl "http://localhost:3000/accounts/movements?account=Nu&startDate=2026-12-01&endDate=2026-12-31"
+```
+
+El concepto es opcional. Si el cuerpo trae `description`, se guarda. Si no, el movimiento usa la categoría y el abono usa `Abono tarjeta`.
 
 Un monto `0`, negativo o con decimales responde `400` y no aparece en la lista. El tipo acepta `income` o `expense`. Un gasto acepta Alimentación, Transporte, Hogar, Tecnología, Educación, Deporte, Ropa, Entretenimiento, Suscripciones u Otros. Un ingreso acepta Salario, Freelance, Barberia u Otros ingresos. La cuenta acepta Efectivo, Nequi, Nu, Daviplata o Tarjeta crédito. Esos textos se guardan tal cual. Un `id` repetido responde `409`.
 
