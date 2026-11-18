@@ -1,6 +1,8 @@
 import { TransactionService } from '../../application/transaction.service';
 import { cashResume } from '../cash-resume';
+import { CardPaymentService } from '../../../card-payments/application/card-payment.service';
 import { CardPaymentMemory } from '../../../card-payments/infrastructure/persistence/card-payment.memory';
+import { AccountMovementService } from '../../../accounts/application/account-movement.service';
 import { TransactionMemory } from '../../infrastructure/persistence/transaction.memory';
 import {
   TransactionCategory,
@@ -10,11 +12,16 @@ import {
 
 describe('TransactionsService', () => {
   let service: TransactionService;
+  let payments: CardPaymentService;
+  let movements: AccountMovementService;
   let memory: TransactionMemory;
 
   beforeEach(() => {
     memory = new TransactionMemory();
-    service = new TransactionService(memory, new CardPaymentMemory());
+    const cardPayments = new CardPaymentMemory();
+    service = new TransactionService(memory, cardPayments);
+    payments = new CardPaymentService(cardPayments, memory);
+    movements = new AccountMovementService(memory, cardPayments);
   });
 
   it('should list transactions', async () => {
@@ -456,6 +463,80 @@ describe('TransactionsService', () => {
         (transaction) => transaction.id,
       ),
     ).toEqual(['nu']);
+  });
+
+  it('shows the november purchase and the december payment', async () => {
+    await service.create({
+      id: 'market',
+      amount: 100000,
+      description: 'Mercado',
+      category: TransactionCategory.FOOD,
+      account: Account.TARJETA_CREDITO,
+      type: TransactionType.EXPENSE,
+      date: new Date('2026-11-03T00:00:00.000Z'),
+    });
+    await payments.create({
+      id: 'pay-nu',
+      amount: 100000,
+      sourceAccount: Account.NU,
+      date: new Date('2026-12-05T00:00:00.000Z'),
+    });
+    await service.create({
+      id: 'lunch',
+      amount: 18000,
+      description: 'Almuerzo',
+      category: TransactionCategory.FOOD,
+      account: Account.NU,
+      type: TransactionType.EXPENSE,
+      date: new Date('2026-12-06T00:00:00.000Z'),
+    });
+
+    const november = {
+      startDate: '2026-11-01',
+      endDate: '2026-11-30',
+    };
+    expect(await service.resume(november)).toEqual({
+      income: 0,
+      cashExpense: 0,
+      cardExpense: 100000,
+      cardPayments: 0,
+      balance: 0,
+      cardOutstanding: 100000,
+    });
+    expect(
+      (
+        await service.findAll({
+          ...november,
+          category: TransactionCategory.FOOD,
+        })
+      ).map((transaction) => transaction.id),
+    ).toEqual(['market']);
+
+    const december = {
+      startDate: '2026-12-01',
+      endDate: '2026-12-31',
+    };
+    expect(await service.resume(december)).toEqual({
+      income: 0,
+      cashExpense: 18000,
+      cardExpense: 0,
+      cardPayments: 100000,
+      balance: -118000,
+      cardOutstanding: 0,
+    });
+    expect(
+      (
+        await service.findAll({
+          ...december,
+          category: TransactionCategory.FOOD,
+        })
+      ).map((transaction) => transaction.id),
+    ).toEqual(['lunch']);
+    expect(
+      (await movements.list({ account: Account.NU, ...december })).map(
+        (movement) => movement.id,
+      ),
+    ).toEqual(['pay-nu', 'lunch']);
   });
 });
 
