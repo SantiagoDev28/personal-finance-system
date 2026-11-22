@@ -26,7 +26,7 @@ describe('transaction schema migrations', () => {
   });
 
   beforeEach(async () => {
-    await pool.query('TRUNCATE transactions');
+    await pool.query('TRUNCATE card_payments, transactions');
   });
 
   afterAll(async () => {
@@ -107,6 +107,35 @@ describe('transaction schema migrations', () => {
       { id: 'mov-1', amount: '18000', type: 'income' },
     ]);
   });
+
+  it('creates the card payment table and rejects a cash account that is the card', async () => {
+    expect(await paymentColumns(pool)).toEqual([
+      'id',
+      'amount',
+      'source_account',
+      'card_account',
+      'description',
+      'date',
+    ]);
+
+    await expect(insertPayment(pool, { amount: 0 })).rejects.toMatchObject({
+      code: '23514',
+    });
+    await expect(
+      insertPayment(pool, { sourceAccount: 'Tarjeta crédito' }),
+    ).rejects.toMatchObject({
+      code: '23514',
+    });
+
+    await insertPayment(pool, { id: 'pay-1' });
+    const stored = await pool.query<{
+      source_account: string;
+      card_account: string;
+    }>('SELECT source_account, card_account FROM card_payments');
+    expect(stored.rows).toEqual([
+      { source_account: 'Nu', card_account: 'Tarjeta crédito' },
+    ]);
+  });
 });
 
 async function recreate(): Promise<Pool> {
@@ -150,6 +179,33 @@ async function columns(pool: Pool): Promise<string[]> {
      ORDER BY ordinal_position`,
   );
   return result.rows.map((row) => row.column_name);
+}
+
+async function paymentColumns(pool: Pool): Promise<string[]> {
+  const result = await pool.query<{ column_name: string }>(
+    `SELECT column_name
+     FROM information_schema.columns
+     WHERE table_schema = 'public' AND table_name = 'card_payments'
+     ORDER BY ordinal_position`,
+  );
+  return result.rows.map((row) => row.column_name);
+}
+
+function insertPayment(
+  pool: Pool,
+  overrides: { id?: string; amount?: number; sourceAccount?: string } = {},
+): Promise<unknown> {
+  return pool.query(
+    `INSERT INTO card_payments (id, amount, source_account, description, date)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [
+      overrides.id ?? 'pay-amount',
+      overrides.amount ?? 100000,
+      overrides.sourceAccount ?? 'Nu',
+      'Abono tarjeta',
+      new Date('2026-12-05T00:00:00.000Z'),
+    ],
+  );
 }
 
 function insert(

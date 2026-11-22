@@ -61,5 +61,5 @@ export async function openTestDatabase(): Promise<Pool> {
 }
 
 export async function emptyTransactions(pool: Pool): Promise<void> {
-  await pool.query('TRUNCATE transactions');
+  await pool.query('TRUNCATE card_payments, transactions');
 }
