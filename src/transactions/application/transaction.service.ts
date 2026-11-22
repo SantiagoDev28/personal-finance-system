@@ -6,8 +6,12 @@ import { FilterTransactionDto } from './dto/filter-transaction.dto';
 import type { TransactionRepository } from '../domain/repositories/transaction.repository';
 import { TRANSACTION_REPOSITORY } from '../domain/repositories/transaction-repository.token';
 import { startOfUtcDay } from '../domain/repositories/transaction-filter';
+import { CARD_PAYMENT_REPOSITORY } from '../../card-payments/domain/repositories/card-payment-repository.token';
+import type { CardPaymentRepository } from '../../card-payments/domain/repositories/card-payment.repository';
+import { cardDebt, cashResume } from '../domain/cash-resume';
 import {
   isAccount,
+  isCashAccount,
   isCategoryForType,
   TransactionType,
 } from '../domain/enums/transaction.enum';
@@ -25,6 +29,7 @@ export type NewTransaction = {
 export function shortcutTransaction(body: {
   id?: string;
   amount: number;
+  description?: string;
   category: string;
   account: string;
   type: TransactionType;
@@ -33,6 +38,7 @@ export function shortcutTransaction(body: {
   return {
     id: body.id,
     amount: body.amount,
+    description: body.description,
     category: body.category,
     account: body.account,
     type: body.type,
@@ -45,6 +51,8 @@ export class TransactionService {
   constructor(
     @Inject(TRANSACTION_REPOSITORY)
     private readonly transactionRepository: TransactionRepository,
+    @Inject(CARD_PAYMENT_REPOSITORY)
+    private readonly cardPayments: CardPaymentRepository,
   ) {}
 
   async create(transaction: NewTransaction): Promise<Transaction> {
@@ -88,6 +96,7 @@ export class TransactionService {
           ? new Date(data.date)
           : existingTransaction.date,
     });
+    await this.assertOutstanding(existingTransaction, updatedTransaction);
     return this.transactionRepository.update(updatedTransaction);
   }
 
@@ -103,15 +112,68 @@ export class TransactionService {
     const transactions = filter
       ? await this.transactionRepository.findByFilter(filter)
       : await this.transactionRepository.findAll();
-    return balanceOf(transactions);
+    const history = filter
+      ? await historyOf(this.transactionRepository, filter)
+      : transactions;
+    const payments = await this.flowPayments(filter);
+    const historyPayments = filter?.endDate
+      ? await this.cardPayments.findByFilter({ endDate: filter.endDate })
+      : await this.cardPayments.findAll();
+    return cashResume(transactions, history, payments, historyPayments);
   }
 
   async delete(id: string): Promise<{ message: string }> {
+    const existing = await this.transactionRepository.findById(id);
+    await this.assertOutstanding(existing, null);
     await this.transactionRepository.delete(id);
     return {
       message: `Transaction with id ${id} deleted successfully`,
     };
   }
+
+  private async assertOutstanding(
+    before: Transaction,
+    after: Transaction | null,
+  ): Promise<void> {
+    const movements = await this.transactionRepository.findAll();
+    const payments = await this.cardPayments.findAll();
+    const outstanding = cashResume([], movements, [], payments).cardOutstanding;
+    const next =
+      outstanding - cardDebt(before) + (after === null ? 0 : cardDebt(after));
+    if (next < 0) {
+      throw new BadRequestException('Card outstanding would be below zero');
+    }
+  }
+
+  private flowPayments(filter?: FilterTransactionDto) {
+    if (!filter) {
+      return this.cardPayments.findAll();
+    }
+    if (filter.category || filter.type) {
+      return Promise.resolve([]);
+    }
+    if (filter.account && !isCashAccount(filter.account)) {
+      return Promise.resolve([]);
+    }
+    return this.cardPayments.findByFilter({
+      sourceAccount: filter.account,
+      startDate: filter.startDate,
+      endDate: filter.endDate,
+    });
+  }
+}
+
+async function historyOf(
+  repository: TransactionRepository,
+  filter?: FilterTransactionDto,
+): Promise<Transaction[]> {
+  if (!filter) {
+    return repository.findAll();
+  }
+  if (filter.endDate) {
+    return repository.findByFilter({ endDate: filter.endDate });
+  }
+  return repository.findAll();
 }
 
 function assertShortcut(data: {
@@ -125,20 +187,4 @@ function assertShortcut(data: {
   if (!isCategoryForType(data.category, data.type)) {
     throw new BadRequestException('Category is not valid for this type');
   }
-}
-
-function balanceOf(transactions: Transaction[]) {
-  const income = transactions
-    .filter((transaction) => transaction.type === TransactionType.INCOME)
-    .reduce((total, transaction) => total + transaction.amount, 0);
-
-  const expense = transactions
-    .filter((transaction) => transaction.type === TransactionType.EXPENSE)
-    .reduce((total, transaction) => total + transaction.amount, 0);
-
-  return {
-    income,
-    expense,
-    balance: income - expense,
-  };
 }

@@ -6,7 +6,7 @@ import {
 export interface TransactionFilter {
   category?: TransactionCategory;
   type?: TransactionType;
-  method?: string;
+  account?: string;
   startDate?: string;
   endDate?: string;
 }

@@ -1,25 +1,28 @@
-import { TransactionCategory, TransactionType } from "../../domain/enums/transaction.enum";
-import { IsString, IsEnum, IsOptional } from "class-validator";
-
+import { IsEnum, IsOptional, IsString } from 'class-validator';
+import {
+  Account,
+  TransactionCategory,
+  TransactionType,
+} from '../../domain/enums/transaction.enum';
 
 export class FilterTransactionDto {
-    @IsOptional()
-    @IsEnum(TransactionCategory)
-    category?: TransactionCategory;
+  @IsOptional()
+  @IsEnum(TransactionCategory)
+  category?: TransactionCategory;
 
-    @IsOptional()
-    @IsEnum(TransactionType)
-    type?: TransactionType;
+  @IsOptional()
+  @IsEnum(TransactionType)
+  type?: TransactionType;
 
-    @IsOptional()
-    @IsString()
-    method?: string;
+  @IsOptional()
+  @IsEnum(Account)
+  account?: Account;
 
-    @IsString()
-    @IsOptional()
-    startDate?: string;
+  @IsOptional()
+  @IsString()
+  startDate?: string;
 
-    @IsString()
-    @IsOptional()
-    endDate?: string;
-} 
+  @IsOptional()
+  @IsString()
+  endDate?: string;
+}

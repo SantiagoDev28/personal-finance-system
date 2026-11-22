@@ -58,10 +58,16 @@ export class TransactionMemory implements TransactionRepository {
         filter.category === undefined ? undefined : String(filter.category);
       const matchesCategory =
         category === undefined || transaction.category === category;
+      const matchesAccount =
+        !filter.account || transaction.account === filter.account;
       const matchesStartDate = !start || transaction.date >= start;
       const matchesEndDate = !end || transaction.date <= end;
       return (
-        matchesType && matchesCategory && matchesStartDate && matchesEndDate
+        matchesType &&
+        matchesCategory &&
+        matchesAccount &&
+        matchesStartDate &&
+        matchesEndDate
       );
     });
     return Promise.resolve(this.sorted(matches));

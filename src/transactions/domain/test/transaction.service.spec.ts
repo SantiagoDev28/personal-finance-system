@@ -1,4 +1,8 @@
 import { TransactionService } from '../../application/transaction.service';
+import { cashResume } from '../cash-resume';
+import { CardPaymentService } from '../../../card-payments/application/card-payment.service';
+import { CardPaymentMemory } from '../../../card-payments/infrastructure/persistence/card-payment.memory';
+import { AccountMovementService } from '../../../accounts/application/account-movement.service';
 import { TransactionMemory } from '../../infrastructure/persistence/transaction.memory';
 import {
   TransactionCategory,
@@ -8,11 +12,16 @@ import {
 
 describe('TransactionsService', () => {
   let service: TransactionService;
+  let payments: CardPaymentService;
+  let movements: AccountMovementService;
   let memory: TransactionMemory;
 
   beforeEach(() => {
     memory = new TransactionMemory();
-    service = new TransactionService(memory);
+    const cardPayments = new CardPaymentMemory();
+    service = new TransactionService(memory, cardPayments);
+    payments = new CardPaymentService(cardPayments, memory);
+    movements = new AccountMovementService(memory, cardPayments);
   });
 
   it('should list transactions', async () => {
@@ -126,11 +135,7 @@ describe('TransactionsService', () => {
   });
 
   it('should report zero income, expense and balance when the list is empty', async () => {
-    expect(await service.resume()).toEqual({
-      income: 0,
-      expense: 0,
-      balance: 0,
-    });
+    expect(await service.resume()).toEqual(cash(0, 0));
   });
 
   it('should subtract an expense from income', async () => {
@@ -155,11 +160,7 @@ describe('TransactionsService', () => {
       date,
     });
 
-    expect(await service.resume()).toEqual({
-      income: 100000,
-      expense: 18000,
-      balance: 82000,
-    });
+    expect(await service.resume()).toEqual(cash(100000, 18000));
     expect((await service.findById('5')).amount).toBe(18000);
   });
 
@@ -215,11 +216,7 @@ describe('TransactionsService', () => {
       type: TransactionType.INCOME,
       date: originalDate,
     });
-    expect(await service.resume()).toEqual({
-      income: 100000,
-      expense: 22000,
-      balance: 78000,
-    });
+    expect(await service.resume()).toEqual(cash(100000, 22000));
   });
 
   it('should update only the fields sent in the body', async () => {
@@ -246,11 +243,7 @@ describe('TransactionsService', () => {
       type: TransactionType.EXPENSE,
       date,
     });
-    expect(await service.resume()).toEqual({
-      income: 0,
-      expense: 22000,
-      balance: -22000,
-    });
+    expect(await service.resume()).toEqual(cash(0, 22000));
   });
 
   it('should throw when updating a transaction that does not exist', async () => {
@@ -331,11 +324,7 @@ describe('TransactionsService', () => {
     await expect(service.findById('11')).rejects.toThrow(
       'Transaction with id 11 not found',
     );
-    expect(await service.resume()).toEqual({
-      income: 100000,
-      expense: 0,
-      balance: 100000,
-    });
+    expect(await service.resume()).toEqual(cash(100000, 0));
   });
 
   it('should throw when deleting a transaction that does not exist', async () => {
@@ -355,17 +344,9 @@ describe('TransactionsService', () => {
       'end-afternoon',
       'end-last',
     ]);
-    expect(await service.resume(filter)).toEqual({
-      income: 13000,
-      expense: 6000,
-      balance: 7000,
-    });
+    expect(await service.resume(filter)).toEqual(cash(13000, 6000));
     expect(await service.resume(filter)).toEqual(calculateResume(listed));
-    expect(await service.resume()).toEqual({
-      income: 13000,
-      expense: 12000,
-      balance: 1000,
-    });
+    expect(await service.resume()).toEqual(cash(13000, 12000));
   });
 
   it('should keep an endDate that includes a time at that instant', async () => {
@@ -378,11 +359,7 @@ describe('TransactionsService', () => {
     expect(
       (await service.findAll(filter)).map((transaction) => transaction.id),
     ).toEqual(['start', 'middle']);
-    expect(await service.resume(filter)).toEqual({
-      income: 10000,
-      expense: 4000,
-      balance: 6000,
-    });
+    expect(await service.resume(filter)).toEqual(cash(10000, 4000));
   });
 
   it('should return an empty list and a zero resume when the range has no transactions', async () => {
@@ -390,11 +367,7 @@ describe('TransactionsService', () => {
     const filter = { startDate: '2026-11-01', endDate: '2026-11-02' };
 
     expect(await service.findAll(filter)).toEqual([]);
-    expect(await service.resume(filter)).toEqual({
-      income: 0,
-      expense: 0,
-      balance: 0,
-    });
+    expect(await service.resume(filter)).toEqual(cash(0, 0));
     expect(await service.resume()).toEqual(
       calculateResume(await service.findAll({})),
     );
@@ -411,26 +384,177 @@ describe('TransactionsService', () => {
     const listed = await service.findAll(filter);
 
     expect(listed.map((transaction) => transaction.id)).toEqual(['middle']);
-    expect(await service.resume(filter)).toEqual({
-      income: 0,
-      expense: 4000,
-      balance: -4000,
-    });
+    expect(await service.resume(filter)).toEqual(cash(0, 4000));
     expect(await service.resume(filter)).toEqual(calculateResume(listed));
+  });
+
+  it('keeps a card purchase out of the cash balance and in its category', async () => {
+    const date = new Date('2026-11-03T00:00:00.000Z');
+    await service.create({
+      id: 'salary',
+      amount: 100000,
+      description: 'Salario',
+      category: TransactionCategory.SALARY,
+      account: Account.NU,
+      type: TransactionType.INCOME,
+      date,
+    });
+    await service.create({
+      id: 'market',
+      amount: 100000,
+      description: 'Mercado',
+      category: TransactionCategory.FOOD,
+      account: Account.TARJETA_CREDITO,
+      type: TransactionType.EXPENSE,
+      date,
+    });
+    await service.create({
+      id: 'cash-food',
+      amount: 18000,
+      description: 'Almuerzo',
+      category: TransactionCategory.FOOD,
+      account: Account.NU,
+      type: TransactionType.EXPENSE,
+      date,
+    });
+
+    expect(await service.resume()).toEqual({
+      income: 100000,
+      cashExpense: 18000,
+      cardExpense: 100000,
+      cardPayments: 0,
+      balance: 82000,
+      cardOutstanding: 100000,
+    });
+    expect(
+      (
+        await service.findAll({
+          category: TransactionCategory.FOOD,
+          startDate: '2026-11-01',
+          endDate: '2026-11-30',
+        })
+      ).map((transaction) => transaction.id),
+    ).toEqual(['cash-food', 'market']);
+  });
+
+  it('filters the list by account', async () => {
+    const date = new Date('2026-11-03T00:00:00.000Z');
+    await service.create({
+      id: 'nu',
+      amount: 18000,
+      description: 'Almuerzo',
+      category: TransactionCategory.FOOD,
+      account: Account.NU,
+      type: TransactionType.EXPENSE,
+      date,
+    });
+    await service.create({
+      id: 'cash',
+      amount: 5000,
+      description: 'Bus',
+      category: TransactionCategory.TRANSPORTATION,
+      account: Account.EFECTIVO,
+      type: TransactionType.EXPENSE,
+      date,
+    });
+
+    expect(
+      (await service.findAll({ account: Account.NU })).map(
+        (transaction) => transaction.id,
+      ),
+    ).toEqual(['nu']);
+  });
+
+  it('shows the november purchase and the december payment', async () => {
+    await service.create({
+      id: 'market',
+      amount: 100000,
+      description: 'Mercado',
+      category: TransactionCategory.FOOD,
+      account: Account.TARJETA_CREDITO,
+      type: TransactionType.EXPENSE,
+      date: new Date('2026-11-03T00:00:00.000Z'),
+    });
+    await payments.create({
+      id: 'pay-nu',
+      amount: 100000,
+      sourceAccount: Account.NU,
+      date: new Date('2026-12-05T00:00:00.000Z'),
+    });
+    await service.create({
+      id: 'lunch',
+      amount: 18000,
+      description: 'Almuerzo',
+      category: TransactionCategory.FOOD,
+      account: Account.NU,
+      type: TransactionType.EXPENSE,
+      date: new Date('2026-12-06T00:00:00.000Z'),
+    });
+
+    const november = {
+      startDate: '2026-11-01',
+      endDate: '2026-11-30',
+    };
+    expect(await service.resume(november)).toEqual({
+      income: 0,
+      cashExpense: 0,
+      cardExpense: 100000,
+      cardPayments: 0,
+      balance: 0,
+      cardOutstanding: 100000,
+    });
+    expect(
+      (
+        await service.findAll({
+          ...november,
+          category: TransactionCategory.FOOD,
+        })
+      ).map((transaction) => transaction.id),
+    ).toEqual(['market']);
+
+    const december = {
+      startDate: '2026-12-01',
+      endDate: '2026-12-31',
+    };
+    expect(await service.resume(december)).toEqual({
+      income: 0,
+      cashExpense: 18000,
+      cardExpense: 0,
+      cardPayments: 100000,
+      balance: -118000,
+      cardOutstanding: 0,
+    });
+    expect(
+      (
+        await service.findAll({
+          ...december,
+          category: TransactionCategory.FOOD,
+        })
+      ).map((transaction) => transaction.id),
+    ).toEqual(['lunch']);
+    expect(
+      (await movements.list({ account: Account.NU, ...december })).map(
+        (movement) => movement.id,
+      ),
+    ).toEqual(['pay-nu', 'lunch']);
   });
 });
 
-function calculateResume(
-  transactions: { type: TransactionType; amount: number }[],
-) {
-  const income = transactions
-    .filter((transaction) => transaction.type === TransactionType.INCOME)
-    .reduce((total, transaction) => total + transaction.amount, 0);
-  const expense = transactions
-    .filter((transaction) => transaction.type === TransactionType.EXPENSE)
-    .reduce((total, transaction) => total + transaction.amount, 0);
+function cash(income: number, cashExpense: number) {
+  return {
+    income,
+    cashExpense,
+    cardExpense: 0,
+    cardPayments: 0,
+    balance: income - cashExpense,
+    cardOutstanding: 0,
+  };
+}
 
-  return { income, expense, balance: income - expense };
+function calculateResume(
+  transactions: { type: TransactionType; amount: number; account: string }[],
+) {
+  return cashResume(transactions, transactions);
 }
 
 function movement(
